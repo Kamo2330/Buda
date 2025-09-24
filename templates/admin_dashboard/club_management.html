@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Club Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="neon-text">
+                    <i class="fas fa-building"></i> Club Management
+                </h1>
+                <a href="{% url 'admin_dashboard:dashboard' %}" class="btn btn-neon-blue">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clubs Grid -->
+    <div class="row">
+        {% for club in clubs %}
+        <div class="col-12 col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if club.logo %}
+                        <img src="{{ club.logo.url }}" alt="{{ club.name }}" 
+                             style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;" class="me-3">
+                        {% else %}
+                        <div class="me-3" style="width: 50px; height: 50px; background: var(--darker-bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-building fa-2x text-muted"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h5 class="neon-text mb-0">{{ club.name }}</h5>
+                            <small class="text-muted">{{ club.address }}</small>
+                        </div>
+                    </div>
+                    
+                    <p class="text-muted small mb-3">{{ club.description|truncatewords:15 }}</p>
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="neon-text-blue">{{ club.tables.count }}</div>
+                            <small class="text-muted">Tables</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="neon-text-pink">{{ club.products.count }}</div>
+                            <small class="text-muted">Products</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin_dashboard:club_detail' club.id %}" class="btn btn-neon btn-sm">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a href="{% url 'admin_dashboard:menu_management' club.id %}" class="btn btn-neon-blue btn-sm">
+                            <i class="fas fa-utensils"></i> Manage Menu
+                        </a>
+                        <a href="{% url 'admin_dashboard:table_management' club.id %}" class="btn btn-neon-pink btn-sm">
+                            <i class="fas fa-table"></i> Manage Tables
+                        </a>
+                        <a href="{% url 'admin_dashboard:qr_codes' club.id %}" class="btn btn-neon btn-sm">
+                            <i class="fas fa-qrcode"></i> Generate QR Codes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No clubs found</h4>
+                <p class="text-muted">Create your first club to get started</p>
+                <a href="/admin/menu/club/add/" class="btn btn-neon">
+                    <i class="fas fa-plus"></i> Add Club
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

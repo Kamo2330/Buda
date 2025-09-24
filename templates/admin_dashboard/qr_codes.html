@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}QR Codes - {{ club.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="neon-text">
+                    <i class="fas fa-qrcode"></i> QR Codes - {{ club.name }}
+                </h1>
+                <a href="{% url 'admin_dashboard:club_detail' club.id %}" class="btn btn-neon-blue">
+                    <i class="fas fa-arrow-left"></i> Back to Club
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="neon-text mb-3">
+                        <i class="fas fa-info-circle"></i> Instructions
+                    </h5>
+                    <p class="mb-2">1. Print these QR codes and place them on each table</p>
+                    <p class="mb-2">2. Customers scan the QR code to access the menu</p>
+                    <p class="mb-0">3. Each QR code is unique to its table number</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Codes Grid -->
+    <div class="row">
+        {% for qr_data in qr_codes %}
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="neon-text mb-3">Table {{ qr_data.table.number }}</h5>
+                    
+                    <!-- QR Code Image -->
+                    <div class="mb-3">
+                        {% if qr_data.qr_image %}
+                        <img src="data:image/png;base64,{{ qr_data.qr_image }}" 
+                             alt="QR Code for Table {{ qr_data.table.number }}" 
+                             style="width: 150px; height: 150px; border: 2px solid var(--neon-green); border-radius: 10px;">
+                        {% else %}
+                        <div style="width: 150px; height: 150px; border: 2px solid var(--neon-green); border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--darker-bg);">
+                            <i class="fas fa-qrcode fa-3x text-muted"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- URL -->
+                    <div class="mb-3">
+                        <small class="text-muted">URL:</small>
+                        <div class="small text-break" style="word-break: break-all;">
+                            {{ qr_data.url }}
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-neon btn-sm" onclick="printQRCode('{{ qr_data.table.number }}')">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                        <button class="btn btn-neon-blue btn-sm" onclick="copyURL('{{ qr_data.url }}')">
+                            <i class="fas fa-copy"></i> Copy URL
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-qrcode fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No tables found</h4>
+                <p class="text-muted">Add tables to this club to generate QR codes</p>
+                <a href="{% url 'admin_dashboard:table_management' club.id %}" class="btn btn-neon">
+                    <i class="fas fa-plus"></i> Manage Tables
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function printQRCode(tableNumber) {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    const qrImage = document.querySelector(`img[alt="QR Code for Table ${tableNumber}"]`);
+    
+    if (qrImage) {
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>QR Code - Table ${tableNumber}</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            text-align: center; 
+                            padding: 20px;
+                        }
+                        .qr-container {
+                            border: 2px solid #000;
+                            padding: 20px;
+                            display: inline-block;
+                            margin: 20px;
+                        }
+                        h1 { color: #333; }
+                        .table-info {
+                            margin: 10px 0;
+                            font-size: 18px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Buda Ordering System</h1>
+                    <div class="qr-container">
+                        <div class="table-info">Table ${tableNumber}</div>
+                        <img src="${qrImage.src}" alt="QR Code" style="width: 200px; height: 200px;">
+                        <div class="table-info">Scan to order</div>
+                    </div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+}
+
+function copyURL(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        showToast('URL copied to clipboard!', 'success');
+    }).catch(() => {
+        showToast('Failed to copy URL', 'error');
+    });
+}
+
+function showToast(message, type = 'info') {
+    const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast show`;
+    toast.innerHTML = `
+        <div class="toast-body">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            ${message}
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+    return container;
+}
+</script>
+{% endblock %}

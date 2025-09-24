@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ club.name }} - Order Menu{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title neon-text">Order fast, chill more 🍺</h1>
+        <p class="hero-subtitle">{{ club.name }} - Table {{ table.number }}</p>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex flex-wrap justify-content-center">
+                <button class="category-tab active" data-category="all">
+                    <i class="fas fa-th-large"></i> All
+                </button>
+                {% for category in categories %}
+                <button class="category-tab" data-category="{{ category.slug }}">
+                    {% if category.icon %}{{ category.icon }}{% endif %} {{ category.name }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row" id="products-grid">
+        {% for category in categories %}
+            {% for product in category.products.all %}
+                {% if product.club == club and product.is_available and product.is_in_stock %}
+                <div class="col-6 col-md-4 col-lg-3 mb-4 product-item" data-category="{{ category.slug }}">
+                    <div class="product-card h-100 p-3" data-product-id="{{ product.id }}">
+                        <div class="text-center">
+                            {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image mb-3">
+                            {% else %}
+                            <div class="product-image mb-3 d-flex align-items-center justify-content-center bg-dark">
+                                <i class="fas fa-beer fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+                            
+                            <h5 class="neon-text-blue mb-2">{{ product.name }}</h5>
+                            <p class="text-muted small mb-3">{{ product.description|truncatewords:10 }}</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h5 neon-text mb-0">R{{ product.price }}</span>
+                                {% if product.stock_quantity %}
+                                <small class="text-muted">Stock: {{ product.stock_quantity }}</small>
+                                {% endif %}
+                            </div>
+                            
+                            <button class="btn btn-neon w-100 add-to-cart-btn" data-product-id="{{ product.id }}">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="text-center py-5" style="display: none;">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No products found</h4>
+        <p class="text-muted">Try selecting a different category</p>
+    </div>
+</div>
+
+<!-- Floating Cart Button -->
+{% if cart_count > 0 %}
+<a href="{% url 'menu:checkout' club.slug table.number %}" class="floating-cart">
+    <i class="fas fa-shopping-cart"></i>
+    <span class="cart-badge">{{ cart_count }}</span>
+    View Cart (R{{ cart_total }})
+</a>
+{% endif %}
+
+<!-- Cart Modal -->
+<div class="modal fade" id="cartModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--card-bg); border: 1px solid var(--neon-green);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--neon-green);">
+                <h5 class="modal-title neon-text">
+                    <i class="fas fa-shopping-cart"></i> Your Order
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body" id="cart-items">
+                <!-- Cart items will be loaded here -->
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--neon-green);">
+                <div class="d-flex justify-content-between w-100">
+                    <span class="h5 neon-text mb-0">Total: R<span id="cart-total">0.00</span></span>
+                    <a href="{% url 'menu:checkout' club.slug table.number %}" class="btn btn-neon">
+                        <i class="fas fa-credit-card"></i> Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Category filtering
+    const categoryTabs = document.querySelectorAll('.category-tab');
+    const productItems = document.querySelectorAll('.product-item');
+    const emptyState = document.getElementById('empty-state');
+    const productsGrid = document.getElementById('products-grid');
+
+    categoryTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const category = this.dataset.category;
+            
+            // Update active tab
+            categoryTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter products
+            let visibleCount = 0;
+            productItems.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Show/hide empty state
+            if (visibleCount === 0) {
+                productsGrid.style.display = 'none';
+                emptyState.style.display = 'block';
+            } else {
+                productsGrid.style.display = 'block';
+                emptyState.style.display = 'none';
+            }
+        });
+    });
+
+    // Add to cart functionality
+    const addToCartBtns = document.querySelectorAll('.add-to-cart-btn');
+    
+    addToCartBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const removeLoadingState = addLoadingState(this);
+            
+            fetch('{% url "menu:add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                removeLoadingState();
+                if (data.success) {
+                    // Show success message
+                    showToast(data.message, 'success');
+                    
+                    // Update cart count in floating button
+                    updateCartDisplay();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                removeLoadingState();
+                showToast('Something went wrong. Please try again.', 'error');
+            });
+        });
+    });
+
+    // Update cart display
+    function updateCartDisplay() {
+        // This would typically fetch the current cart state
+        // For now, we'll just show a success message
+        const floatingCart = document.querySelector('.floating-cart');
+        if (floatingCart) {
+            floatingCart.style.display = 'block';
+        }
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast show`;
+        toast.innerHTML = `
+            <div class="toast-body">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+        return container;
+    }
+});
+</script>
+{% endblock %}

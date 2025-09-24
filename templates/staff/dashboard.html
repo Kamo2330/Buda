@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Staff Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="neon-text">
+                    <i class="fas fa-tachometer-alt"></i> Staff Dashboard
+                </h1>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-neon" onclick="refreshOrders()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <a href="{% url 'staff:product_management' %}" class="btn btn-neon-blue">
+                        <i class="fas fa-utensils"></i> Manage Menu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Status Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="orderTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="received-tab" data-bs-toggle="tab" 
+                            data-bs-target="#received" type="button" role="tab">
+                        <i class="fas fa-clock"></i> Received 
+                        <span class="badge bg-danger ms-2">{{ received_orders|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="in-progress-tab" data-bs-toggle="tab" 
+                            data-bs-target="#in-progress" type="button" role="tab">
+                        <i class="fas fa-cog fa-spin"></i> In Progress 
+                        <span class="badge bg-warning ms-2">{{ in_progress_orders|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="ready-tab" data-bs-toggle="tab" 
+                            data-bs-target="#ready" type="button" role="tab">
+                        <i class="fas fa-check-circle"></i> Ready 
+                        <span class="badge bg-success ms-2">{{ ready_orders|length }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Order Content -->
+    <div class="tab-content" id="orderTabsContent">
+        <!-- Received Orders -->
+        <div class="tab-pane fade show active" id="received" role="tabpanel">
+            <div class="row">
+                {% for order in received_orders %}
+                <div class="col-12 col-md-6 col-lg-4 mb-3">
+                    <div class="card order-card" data-order-id="{{ order.id }}">
+                        <div class="card-header d-flex justify-content-between align-items-center" 
+                             style="border-bottom: 1px solid var(--neon-green);">
+                            <h6 class="neon-text mb-0">
+                                <i class="fas fa-receipt"></i> {{ order.order_number }}
+                            </h6>
+                            <small class="text-muted">{{ order.created_at|date:"H:i" }}</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>Table:</strong> {{ order.table.number }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Total:</strong> <span class="neon-text">R{{ order.total_amount }}</span>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Items:</strong>
+                                <ul class="list-unstyled mt-1">
+                                    {% for item in order.items.all %}
+                                    <li class="small">
+                                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                                        {{ item.quantity }}x {{ item.product.name }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% if order.notes %}
+                            <div class="mb-3">
+                                <strong>Notes:</strong>
+                                <p class="small text-muted mb-0">{{ order.notes }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-neon btn-sm" 
+                                        onclick="updateOrderStatus({{ order.id }}, 'in_progress')">
+                                    <i class="fas fa-play"></i> Start Preparing
+                                </button>
+                                <a href="{% url 'staff:order_detail' order.id %}" class="btn btn-neon-blue btn-sm">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No new orders</h4>
+                        <p class="text-muted">New orders will appear here</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- In Progress Orders -->
+        <div class="tab-pane fade" id="in-progress" role="tabpanel">
+            <div class="row">
+                {% for order in in_progress_orders %}
+                <div class="col-12 col-md-6 col-lg-4 mb-3">
+                    <div class="card order-card" data-order-id="{{ order.id }}">
+                        <div class="card-header d-flex justify-content-between align-items-center" 
+                             style="border-bottom: 1px solid var(--neon-blue);">
+                            <h6 class="neon-text-blue mb-0">
+                                <i class="fas fa-cog fa-spin"></i> {{ order.order_number }}
+                            </h6>
+                            <small class="text-muted">{{ order.created_at|date:"H:i" }}</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>Table:</strong> {{ order.table.number }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Total:</strong> <span class="neon-text">R{{ order.total_amount }}</span>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Items:</strong>
+                                <ul class="list-unstyled mt-1">
+                                    {% for item in order.items.all %}
+                                    <li class="small">
+                                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                                        {{ item.quantity }}x {{ item.product.name }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-neon btn-sm" 
+                                        onclick="updateOrderStatus({{ order.id }}, 'ready')">
+                                    <i class="fas fa-check"></i> Mark Ready
+                                </button>
+                                <a href="{% url 'staff:order_detail' order.id %}" class="btn btn-neon-blue btn-sm">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-cog fa-spin fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No orders in progress</h4>
+                        <p class="text-muted">Orders being prepared will appear here</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Ready Orders -->
+        <div class="tab-pane fade" id="ready" role="tabpanel">
+            <div class="row">
+                {% for order in ready_orders %}
+                <div class="col-12 col-md-6 col-lg-4 mb-3">
+                    <div class="card order-card" data-order-id="{{ order.id }}">
+                        <div class="card-header d-flex justify-content-between align-items-center" 
+                             style="border-bottom: 1px solid var(--neon-green);">
+                            <h6 class="neon-text mb-0">
+                                <i class="fas fa-check-circle"></i> {{ order.order_number }}
+                            </h6>
+                            <small class="text-muted">{{ order.created_at|date:"H:i" }}</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>Table:</strong> {{ order.table.number }}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Total:</strong> <span class="neon-text">R{{ order.total_amount }}</span>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Items:</strong>
+                                <ul class="list-unstyled mt-1">
+                                    {% for item in order.items.all %}
+                                    <li class="small">
+                                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                                        {{ item.quantity }}x {{ item.product.name }}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-neon btn-sm" 
+                                        onclick="updateOrderStatus({{ order.id }}, 'delivered')">
+                                    <i class="fas fa-truck"></i> Mark Delivered
+                                </button>
+                                <a href="{% url 'staff:order_detail' order.id %}" class="btn btn-neon-blue btn-sm">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No orders ready</h4>
+                        <p class="text-muted">Ready orders will appear here</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateOrderStatus(orderId, newStatus) {
+    const button = event.target;
+    const removeLoadingState = addLoadingState(button);
+    
+    fetch(`/staff/api/order/${orderId}/status/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            status: newStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        removeLoadingState();
+        if (data.success) {
+            showToast(data.message, 'success');
+            // Remove the order card from current tab
+            const orderCard = document.querySelector(`[data-order-id="${orderId}"]`);
+            if (orderCard) {
+                orderCard.remove();
+            }
+            // Refresh the page after a short delay
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        removeLoadingState();
+        showToast('Something went wrong. Please try again.', 'error');
+    });
+}
+
+function refreshOrders() {
+    location.reload();
+}
+
+function showToast(message, type = 'info') {
+    const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+    
+    const toast = document.createElement('div');
+    toast.className = `toast show`;
+    toast.innerHTML = `
+        <div class="toast-body">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            ${message}
+        </div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+    return container;
+}
+
+// Auto-refresh every 30 seconds
+setInterval(refreshOrders, 30000);
+</script>
+{% endblock %}

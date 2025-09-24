@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="neon-text">
+                <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+            </h1>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-12 col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-building fa-2x neon-text mb-2"></i>
+                    <h3 class="neon-text">{{ total_clubs }}</h3>
+                    <p class="text-muted mb-0">Active Clubs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-receipt fa-2x neon-text-blue mb-2"></i>
+                    <h3 class="neon-text-blue">{{ total_orders }}</h3>
+                    <p class="text-muted mb-0">Total Orders</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-money-bill-wave fa-2x neon-text-pink mb-2"></i>
+                    <h3 class="neon-text-pink">R{{ total_revenue }}</h3>
+                    <p class="text-muted mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-calendar-day fa-2x neon-text mb-2"></i>
+                    <h3 class="neon-text">{{ today_orders }}</h3>
+                    <p class="text-muted mb-0">Today's Orders</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-green);">
+                    <h5 class="neon-text mb-0">
+                        <i class="fas fa-bolt"></i> Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-md-4 mb-3">
+                            <a href="{% url 'admin_dashboard:club_management' %}" class="btn btn-neon w-100">
+                                <i class="fas fa-building"></i> Manage Clubs
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-4 mb-3">
+                            <a href="{% url 'admin_dashboard:reports' %}" class="btn btn-neon-blue w-100">
+                                <i class="fas fa-chart-bar"></i> View Reports
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-4 mb-3">
+                            <a href="/admin/" class="btn btn-neon-pink w-100">
+                                <i class="fas fa-cog"></i> Django Admin
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-green);">
+                    <h5 class="neon-text mb-0">
+                        <i class="fas fa-clock"></i> Recent Orders
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Club</th>
+                                    <th>Table</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>{{ order.order_number }}</td>
+                                    <td>{{ order.club.name }}</td>
+                                    <td>{{ order.table.number }}</td>
+                                    <td class="neon-text">R{{ order.total_amount }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if order.status == 'received' %}bg-danger
+                                            {% elif order.status == 'in_progress' %}bg-warning
+                                            {% elif order.status == 'ready' %}bg-success
+                                            {% elif order.status == 'delivered' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ order.created_at|date:"H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No orders yet</h5>
+                        <p class="text-muted">Orders will appear here once customers start placing them</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Products -->
+        <div class="col-12 col-lg-4">
+            <div class="card">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-green);">
+                    <h5 class="neon-text mb-0">
+                        <i class="fas fa-trophy"></i> Top Products
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if top_products %}
+                    {% for product in top_products %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="mb-0">{{ product.product.name }}</h6>
+                            <small class="text-muted">{{ product.product.club.name }}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="neon-text">R{{ product.revenue }}</span>
+                            <div class="small text-muted">{{ product.quantity_sold }} sold</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">No sales data yet</h6>
+                        <p class="text-muted small">Product sales will appear here</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

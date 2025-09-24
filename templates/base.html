@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Buda - Club Ordering System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --neon-green: #00ff88;
+            --neon-blue: #00d4ff;
+            --neon-pink: #ff0080;
+            --neon-purple: #8b5cf6;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+            --card-bg: #1a1a1a;
+            --text-light: #ffffff;
+            --text-muted: #ffffff;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+            color: var(--text-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: rgba(10, 10, 10, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--neon-green);
+        }
+        
+        .navbar-brand {
+            color: var(--neon-green) !important;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .btn-neon {
+            background: transparent;
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-neon:hover {
+            background: var(--neon-green);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--neon-green);
+            transform: translateY(-2px);
+        }
+        
+        .btn-neon-blue {
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+        }
+        
+        .btn-neon-blue:hover {
+            background: var(--neon-blue);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card:hover {
+            border-color: var(--neon-green);
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.1);
+        }
+        
+        .neon-text {
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+        
+        .neon-text-blue {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+        
+        .neon-text-pink {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--neon-pink);
+        }
+        
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 255, 136, 0.1);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .product-card:hover {
+            border-color: var(--neon-green);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        
+        .cart-badge {
+            background: var(--neon-pink);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+        
+        .floating-cart {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--neon-green);
+            color: var(--dark-bg);
+            border-radius: 50px;
+            padding: 15px 20px;
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .floating-cart:hover {
+            color: var(--dark-bg);
+            transform: scale(1.05);
+        }
+        
+        .category-tab {
+            background: transparent;
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .category-tab.active {
+            background: var(--neon-blue);
+            color: var(--dark-bg);
+        }
+        
+        .category-tab:hover {
+            background: var(--neon-blue);
+            color: var(--dark-bg);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+        
+        .text-muted,
+        .small.text-muted,
+        p.text-muted,
+        small.text-muted {
+            color: var(--text-muted) !important;
+        }
+        
+        /* Override Bootstrap's text-muted specifically */
+        .text-muted,
+        .small.text-muted,
+        p.small.text-muted,
+        small.text-muted,
+        .card .text-muted,
+        .card .small.text-muted,
+        .container .text-muted,
+        .container .small.text-muted,
+        .row .text-muted,
+        .row .small.text-muted {
+            color: #ffffff !important;
+        }
+        
+        /* Additional specificity for nested elements */
+        .hero-section .text-muted,
+        .card-body .text-muted,
+        .card-body .small.text-muted {
+            color: #ffffff !important;
+        }
+        
+        /* Make h6 elements white in the How It Works section */
+        .card-body h6,
+        .row h6,
+        .col-12 h6,
+        .col-md-3 h6 {
+            color: #ffffff !important;
+        }
+        
+        /* Ensure button text is white */
+        .btn-neon,
+        .btn-neon-blue,
+        .btn-neon-pink {
+            color: #ffffff !important;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-section {
+                padding: 20px;
+            }
+            
+            .floating-cart {
+                bottom: 10px;
+                right: 10px;
+                padding: 12px 16px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 255, 136, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--neon-green);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        
+        .toast {
+            background: var(--card-bg);
+            border: 1px solid var(--neon-green);
+            color: var(--text-light);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'menu:home' %}">
+                <i class="fas fa-beer"></i> Buda
+            </a>
+            
+            {% if user.is_authenticated %}
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'staff:dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i> Staff Dashboard
+                </a>
+                {% if user.is_staff %}
+                <a class="nav-link" href="{% url 'admin_dashboard:dashboard' %}">
+                    <i class="fas fa-cog"></i> Admin
+                </a>
+                {% endif %}
+                <a class="nav-link" href="/admin/logout/">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="toast show" role="alert">
+            <div class="toast-body">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="container-fluid py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-hide toasts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 5000);
+            });
+        });
+        
+        // Add loading state to buttons
+        function addLoadingState(button) {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="loading"></span> Loading...';
+            button.disabled = true;
+            
+            return function removeLoadingState() {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            };
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

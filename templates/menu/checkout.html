@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - {{ club.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="neon-text">
+                    <i class="fas fa-credit-card"></i> Checkout
+                </h1>
+                <p class="text-muted">{{ club.name }} - Table {{ table.number }}</p>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-green);">
+                    <h5 class="neon-text mb-0">
+                        <i class="fas fa-list"></i> Order Summary
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart_items %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;" class="me-3">
+                            {% else %}
+                            <div class="me-3" style="width: 50px; height: 50px; background: var(--darker-bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-beer text-muted"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0">{{ item.product.name }}</h6>
+                                <small class="text-muted">R{{ item.product.price }} each</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="neon-text">x{{ item.quantity }}</span>
+                            <div class="h6 neon-text mb-0">R{{ item.total }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <hr style="border-color: var(--neon-green);">
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Total:</h5>
+                        <h4 class="neon-text mb-0">R{{ cart_total }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="card mb-4">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-green);">
+                    <h5 class="neon-text mb-0">
+                        <i class="fas fa-money-bill-wave"></i> Payment Method
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="checkout-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="pay_at_table" value="pay_at_table" checked>
+                                <label class="form-check-label" for="pay_at_table">
+                                    <i class="fas fa-hand-holding-usd"></i> Pay at Table
+                                    <small class="d-block text-muted">Pay with cash or card when your order arrives</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="pay_online" value="pay_online">
+                                <label class="form-check-label" for="pay_online">
+                                    <i class="fas fa-credit-card"></i> Pay Online
+                                    <small class="d-block text-muted">Pay now with card, SnapScan, or EFT</small>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Customer Info (Optional) -->
+                        <div class="mb-3">
+                            <label for="customer_name" class="form-label">Your Name (Optional)</label>
+                            <input type="text" class="form-control" id="customer_name" name="customer_name" 
+                                   placeholder="Enter your name">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="customer_phone" class="form-label">Phone Number (Optional)</label>
+                            <input type="tel" class="form-control" id="customer_phone" name="customer_phone" 
+                                   placeholder="Enter your phone number">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Special Instructions (Optional)</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                      placeholder="Any special requests or notes for your order..."></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+                <button type="submit" form="checkout-form" class="btn btn-neon btn-lg">
+                    <i class="fas fa-check"></i> Place Order
+                </button>
+                <a href="{% url 'menu:menu' club.slug table.number %}" class="btn btn-neon-blue">
+                    <i class="fas fa-arrow-left"></i> Back to Menu
+                </a>
+            </div>
+
+            <!-- Order Info -->
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    Your order will be prepared and delivered to Table {{ table.number }}.
+                    Estimated time: 10-15 minutes.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkout-form');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const removeLoadingState = addLoadingState(submitBtn);
+        
+        // Submit the form
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(html => {
+            // Redirect to confirmation page
+            window.location.href = '{% url "menu:order_confirmation" 0 %}'.replace('0', '{{ order.id }}');
+        })
+        .catch(error => {
+            removeLoadingState();
+            showToast('Something went wrong. Please try again.', 'error');
+        });
+    });
+    
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast show`;
+        toast.innerHTML = `
+            <div class="toast-body">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+        return container;
+    }
+});
+</script>
+{% endblock %}

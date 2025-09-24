@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Buda - Club Ordering System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title neon-text">Welcome to Buda</h1>
+        <p class="hero-subtitle">Order fast, chill more 🍺</p>
+        <p class="text-muted">Scan the QR code at your table to start ordering</p>
+    </div>
+
+    <!-- Club Selection -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-green);">
+                    <h5 class="neon-text mb-0">
+                        <i class="fas fa-building"></i> Select Your Club
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if clubs %}
+                    <div class="list-group">
+                        {% for club in clubs %}
+                        <a href="{% url 'menu:menu' club.slug '1' %}" class="list-group-item list-group-item-action" 
+                           style="background: var(--card-bg); border: 1px solid var(--neon-green); color: var(--text-light);">
+                            <div class="d-flex align-items-center">
+                                {% if club.logo %}
+                                <img src="{{ club.logo.url }}" alt="{{ club.name }}" 
+                                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;" class="me-3">
+                                {% else %}
+                                <div class="me-3" style="width: 50px; height: 50px; background: var(--darker-bg); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-building fa-2x text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="neon-text mb-1">{{ club.name }}</h6>
+                                    <small class="text-muted">{{ club.address }}</small>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No clubs available</h5>
+                        <p class="text-muted">Please contact the administrator</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-green);">
+                    <h5 class="neon-text mb-0">
+                        <i class="fas fa-bolt"></i> Quick Access
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-md-4 mb-3">
+                            <a href="{% url 'menu:menu' 'test-club' '1' %}" class="btn btn-neon w-100">
+                                <i class="fas fa-table"></i> Table 1
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-4 mb-3">
+                            <a href="{% url 'menu:menu' 'test-club' '7' %}" class="btn btn-neon-blue w-100">
+                                <i class="fas fa-table"></i> Table 7
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-4 mb-3">
+                            <a href="{% url 'menu:menu' 'test-club' 'VIP1' %}" class="btn btn-neon-pink w-100">
+                                <i class="fas fa-crown"></i> VIP Table 1
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Access -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header" style="border-bottom: 1px solid var(--neon-green);">
+                    <h5 class="neon-text mb-0">
+                        <i class="fas fa-users"></i> Staff Access
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 col-md-6 mb-3">
+                            <a href="{% url 'staff:dashboard' %}" class="btn btn-neon w-100">
+                                <i class="fas fa-tachometer-alt"></i> Staff Dashboard
+                            </a>
+                        </div>
+                        <div class="col-12 col-md-6 mb-3">
+                            <a href="{% url 'admin_dashboard:dashboard' %}" class="btn btn-neon-blue w-100">
+                                <i class="fas fa-cog"></i> Admin Dashboard
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            Default login: admin / admin123
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="neon-text mb-3">
+                        <i class="fas fa-info-circle"></i> How It Works
+                    </h5>
+                    <div class="row">
+                        <div class="col-12 col-md-3 text-center mb-3">
+                            <div class="neon-text-blue mb-2">
+                                <i class="fas fa-qrcode fa-2x"></i>
+                            </div>
+                            <h6>1. Scan QR Code</h6>
+                            <p class="small text-muted">Scan the QR code at your table</p>
+                        </div>
+                        <div class="col-12 col-md-3 text-center mb-3">
+                            <div class="neon-text-pink mb-2">
+                                <i class="fas fa-utensils fa-2x"></i>
+                            </div>
+                            <h6>2. Browse Menu</h6>
+                            <p class="small text-muted">Choose from beers, ciders, spirits, and snacks</p>
+                        </div>
+                        <div class="col-12 col-md-3 text-center mb-3">
+                            <div class="neon-text mb-2">
+                                <i class="fas fa-shopping-cart fa-2x"></i>
+                            </div>
+                            <h6>3. Add to Cart</h6>
+                            <p class="small text-muted">Add items to your cart and checkout</p>
+                        </div>
+                        <div class="col-12 col-md-3 text-center mb-3">
+                            <div class="neon-text-blue mb-2">
+                                <i class="fas fa-truck fa-2x"></i>
+                            </div>
+                            <h6>4. Get Delivery</h6>
+                            <p class="small text-muted">Your order will be delivered to your table</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
