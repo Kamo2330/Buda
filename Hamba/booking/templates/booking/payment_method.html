@@ -1,0 +1,92 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="booking-steps">
+        <div class="step completed">1. Summary</div>
+        <div class="step completed">2. Travelers</div>
+        <div class="step completed">3. Payment</div>
+        <div class="step active">4. Confirm</div>
+    </div>
+
+    <div class="booking-layout">
+        <div class="booking-main">
+            <h2>How Are You Going to Pay?</h2>
+            <p class="section-description">Select your preferred payment method</p>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="payment-methods">
+                    <label class="payment-method-card">
+                        <input type="radio" name="payment_method" value="CARD" checked>
+                        <div class="payment-method-content">
+                            <div class="payment-icon">💳</div>
+                            <div>
+                                <div class="payment-name">Card</div>
+                                <div class="payment-description">Credit or Debit Card</div>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <label class="payment-method-card">
+                        <input type="radio" name="payment_method" value="EFT">
+                        <div class="payment-method-content">
+                            <div class="payment-icon">🏦</div>
+                            <div>
+                                <div class="payment-name">EFT / Bank Transfer</div>
+                                <div class="payment-description">Direct bank transfer</div>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <label class="payment-method-card">
+                        <input type="radio" name="payment_method" value="WALLET">
+                        <div class="payment-method-content">
+                            <div class="payment-icon">📱</div>
+                            <div>
+                                <div class="payment-name">Mobile Wallet</div>
+                                <div class="payment-description">Pay with mobile wallet</div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'booking:payer_details' %}" class="btn btn-secondary">Back</a>
+                    <button type="submit" class="btn btn-primary btn-large">Complete Booking</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="booking-sidebar">
+            <div class="price-summary-card sticky">
+                <h3>Price Breakdown</h3>
+                <div class="price-breakdown">
+                    <div class="price-row">
+                        <span>Airfare per adult:</span>
+                        <span>R{{ booking_totals.base_fare|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Total airport taxes:</span>
+                        <span>R{{ booking_totals.taxes|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Total extras:</span>
+                        <span>R{{ booking_totals.extras|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total price:</span>
+                        <span>R{{ booking_totals.total|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+

@@ -1,0 +1,121 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="booking-steps">
+        <div class="step active">1. Summary</div>
+        <div class="step">2. Travelers</div>
+        <div class="step">3. Payment</div>
+        <div class="step">4. Confirm</div>
+    </div>
+
+    <div class="booking-layout">
+        <div class="booking-main">
+            <h2>Flight Details</h2>
+            
+            {% for flight in flights %}
+            <div class="flight-summary-card">
+                <div class="flight-header">
+                    <h3>{% if forloop.first %}Outbound{% else %}Return{% endif %} Flight</h3>
+                </div>
+                <div class="flight-info">
+                    <div class="airline-badge">{{ flight.airline }} {{ flight.flight_number }}</div>
+                    <div class="route-info">
+                        <div>
+                            <div class="time">{{ flight.departure_time }}</div>
+                            <div class="airport">{{ flight.origin }}</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div>
+                            <div class="time">{{ flight.arrival_time }}</div>
+                            <div class="airport">{{ flight.destination }}</div>
+                        </div>
+                    </div>
+                    <div class="cabin-info">{{ flight.cabin }}</div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <h2 class="section-title">Optional Extras</h2>
+            <form method="post" id="extras-form">
+                {% csrf_token %}
+                
+                <div class="extras-list">
+                    {% for extra in available_extras %}
+                    <div class="extra-item">
+                        <label class="extra-checkbox-label">
+                            <input 
+                                type="checkbox" 
+                                name="{% if extra.type == 'WHATSAPP_TICKET' %}whatsapp_ticket{% elif extra.type == 'SMS_TICKET' %}sms_ticket{% elif extra.type == 'REFUND_INSURANCE' %}refund_insurance{% elif extra.type == 'DATE_CHANGE_OPTION' %}date_change_option{% endif %}"
+                                class="extra-checkbox"
+                                data-price="{{ extra.price }}"
+                            >
+                            <div class="extra-content">
+                                <div class="extra-header">
+                                    <span class="extra-name">{{ extra.name }}</span>
+                                    <span class="extra-price">R{{ extra.price|floatformat:2 }}</span>
+                                </div>
+                                <p class="extra-description">{{ extra.description }}</p>
+                            </div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">Continue to Traveler Details</button>
+            </form>
+        </div>
+
+        <div class="booking-sidebar">
+            <div class="price-summary-card sticky">
+                <h3>Price Breakdown</h3>
+                <div class="price-breakdown">
+                    <div class="price-row">
+                        <span>Airfare per adult:</span>
+                        <span>R{{ booking_totals.base_fare|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Total airport taxes:</span>
+                        <span>R{{ booking_totals.taxes|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Total extras:</span>
+                        <span id="extras-total">R{{ booking_totals.extras|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total price:</span>
+                        <span id="total-price">R{{ booking_totals.total|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update totals when extras are selected
+    const baseFare = {{ booking_totals.base_fare }};
+    const taxes = {{ booking_totals.taxes }};
+    
+    document.querySelectorAll('.extra-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            let extrasTotal = 0;
+            document.querySelectorAll('.extra-checkbox:checked').forEach(cb => {
+                extrasTotal += parseFloat(cb.dataset.price);
+            });
+            
+            const total = baseFare + taxes + extrasTotal;
+            
+            document.getElementById('extras-total').textContent = 'R' + extrasTotal.toFixed(2);
+            document.getElementById('total-price').textContent = 'R' + total.toFixed(2);
+        });
+    });
+</script>
+{% endblock %}
+
+
+
+

@@ -1,0 +1,89 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="booking-steps">
+        <div class="step completed">1. Summary</div>
+        <div class="step active">2. Travelers</div>
+        <div class="step">3. Payment</div>
+        <div class="step">4. Confirm</div>
+    </div>
+
+    <div class="booking-layout">
+        <div class="booking-main">
+            <h2>Who's Traveling?</h2>
+            <p class="section-description">Please provide details for all travelers</p>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                {% for i in "x"|ljust:num_travelers %}
+                <div class="traveler-form-card">
+                    <h3>Traveler {{ forloop.counter }}</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <input type="text" name="traveler_{{ forloop.counter0 }}_first_name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name *</label>
+                            <input type="text" name="traveler_{{ forloop.counter0 }}_last_name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth *</label>
+                            <input type="date" name="traveler_{{ forloop.counter0 }}_date_of_birth" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>ID / Passport Number</label>
+                            <input type="text" name="traveler_{{ forloop.counter0 }}_document_number" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Nationality</label>
+                            <input type="text" name="traveler_{{ forloop.counter0 }}_nationality" class="form-control">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Special Requests (Optional)</label>
+                            <textarea name="traveler_{{ forloop.counter0 }}_special_requests" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="form-actions">
+                    <a href="{% url 'booking:booking_summary' %}" class="btn btn-secondary">Back</a>
+                    <button type="submit" class="btn btn-primary btn-large">Continue to Payment Details</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="booking-sidebar">
+            <div class="price-summary-card sticky">
+                <h3>Price Breakdown</h3>
+                <div class="price-breakdown">
+                    <div class="price-row">
+                        <span>Airfare per adult:</span>
+                        <span>R{{ booking_totals.base_fare|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Total airport taxes:</span>
+                        <span>R{{ booking_totals.taxes|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Total extras:</span>
+                        <span>R{{ booking_totals.extras|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total price:</span>
+                        <span>R{{ booking_totals.total|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+

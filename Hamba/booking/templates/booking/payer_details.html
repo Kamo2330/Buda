@@ -1,0 +1,105 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="booking-steps">
+        <div class="step completed">1. Summary</div>
+        <div class="step completed">2. Travelers</div>
+        <div class="step active">3. Payment</div>
+        <div class="step">4. Confirm</div>
+    </div>
+
+    <div class="booking-layout">
+        <div class="booking-main">
+            <h2>Who's Paying?</h2>
+            <p class="section-description">Enter the billing information for this booking</p>
+
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-card">
+                    <h3>Contact Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="{{ form.first_name.id_for_label }}">First Name *</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.last_name.id_for_label }}">Last Name *</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}">Email Address *</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.phone.id_for_label }}">Phone Number</label>
+                            {{ form.phone }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <h3>Billing Address</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="{{ form.billing_address_line1.id_for_label }}">Address Line 1</label>
+                            {{ form.billing_address_line1 }}
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="{{ form.billing_address_line2.id_for_label }}">Address Line 2 (Optional)</label>
+                            {{ form.billing_address_line2 }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.billing_city.id_for_label }}">City</label>
+                            {{ form.billing_city }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.billing_postcode.id_for_label }}">Postal Code</label>
+                            {{ form.billing_postcode }}
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="{{ form.billing_country.id_for_label }}">Country</label>
+                            {{ form.billing_country }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'booking:traveler_details' %}" class="btn btn-secondary">Back</a>
+                    <button type="submit" class="btn btn-primary btn-large">Continue to Payment Method</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="booking-sidebar">
+            <div class="price-summary-card sticky">
+                <h3>Price Breakdown</h3>
+                <div class="price-breakdown">
+                    <div class="price-row">
+                        <span>Airfare per adult:</span>
+                        <span>R{{ booking_totals.base_fare|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Total airport taxes:</span>
+                        <span>R{{ booking_totals.taxes|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Total extras:</span>
+                        <span>R{{ booking_totals.extras|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total price:</span>
+                        <span>R{{ booking_totals.total|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+

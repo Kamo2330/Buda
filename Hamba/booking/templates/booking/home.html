@@ -1,0 +1,221 @@
+{% extends 'booking/base.html' %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h2 class="hero-title">Book Your Perfect Trip</h2>
+            <p class="hero-subtitle">Choose what you need: Flights, Buses, Accommodations, or Special Packages</p>
+        </div>
+    </div>
+</div>
+
+<div class="search-section">
+    <div class="container">
+        <div class="search-card">
+            <form method="post" class="search-form">
+                {% csrf_token %}
+
+                <div class="product-type-selector">
+                    <button type="button" class="product-type-button active" data-type="flight">Flights</button>
+                    <button type="button" class="product-type-button" data-type="bus">Buses</button>
+                    <button type="button" class="product-type-button" data-type="stay">Accommodations</button>
+                    <button type="button" class="product-type-button" data-type="package">Special Packages</button>
+                </div>
+
+                <input type="hidden" name="product_type" id="product-type-input" value="flight">
+
+                <div class="trip-type-selector">
+                    <label>
+                        <input type="radio" name="trip_type" value="oneway" {% if form.trip_type.value == 'oneway' %}checked{% endif %}>
+                        <span>One Way</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="trip_type" value="return" {% if form.trip_type.value == 'return' or not form.trip_type.value %}checked{% endif %}>
+                        <span>Return</span>
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group" id="origin-group">
+                        <label for="{{ form.origin.id_for_label }}" id="origin-label">From</label>
+                        {{ form.origin }}
+                    </div>
+                    <div class="form-group" id="destination-group">
+                        <label for="{{ form.destination.id_for_label }}" id="destination-label">To</label>
+                        {{ form.destination }}
+                    </div>
+                    <div class="form-group" id="departure-group">
+                        <label for="{{ form.departure_date.id_for_label }}" id="departure-label">Departure Date</label>
+                        {{ form.departure_date }}
+                    </div>
+                    <div class="form-group" id="return-date-group">
+                        <label for="{{ form.return_date.id_for_label }}" id="return-label">Return Date</label>
+                        {{ form.return_date }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.adults.id_for_label }}">Adults</label>
+                        {{ form.adults }}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.children.id_for_label }}">Children</label>
+                        {{ form.children }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large" id="search-button">Search</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">✈️</div>
+                <h3>Flights</h3>
+                <p>Book domestic and international flights</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚌</div>
+                <h3>Buses</h3>
+                <p>Intercity bus bookings</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏨</div>
+                <h3>Accommodations</h3>
+                <p>Hotels and guest houses</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Special Packages</h3>
+                <p>Curated flight, stay, and activity bundles</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Show/hide return date based on trip type
+    document.querySelectorAll('input[name="trip_type"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const returnDateGroup = document.getElementById('return-date-group');
+            if (this.value === 'oneway') {
+                returnDateGroup.style.display = 'none';
+                document.getElementById('id_return_date').required = false;
+            } else {
+                returnDateGroup.style.display = 'block';
+                document.getElementById('id_return_date').required = true;
+            }
+        });
+    });
+
+    // Trigger on page load (guard against missing element)
+    const checkedTripType = document.querySelector('input[name="trip_type"]:checked');
+    if (checkedTripType) {
+        checkedTripType.dispatchEvent(new Event('change'));
+    }
+
+    // Product type selector (Flights, Buses, Accommodations, Packages)
+    const productButtons = document.querySelectorAll('.product-type-button');
+    const productTypeInput = document.getElementById('product-type-input');
+    const originGroup = document.getElementById('origin-group');
+    const destinationGroup = document.getElementById('destination-group');
+    const departureGroup = document.getElementById('departure-group');
+    const returnDateGroup = document.getElementById('return-date-group');
+    const originLabel = document.getElementById('origin-label');
+    const destinationLabel = document.getElementById('destination-label');
+    const departureLabel = document.getElementById('departure-label');
+    const returnLabel = document.getElementById('return-label');
+    const originInput = document.getElementById('id_origin');
+    const destinationInput = document.getElementById('id_destination');
+    const departureInput = document.getElementById('id_departure_date');
+    const returnInput = document.getElementById('id_return_date');
+    const tripTypeSelector = document.querySelector('.trip-type-selector');
+
+    const searchButton = document.getElementById('search-button');
+
+    const updateSearchButtonText = (type) => {
+        if (!searchButton) return;
+        if (type === 'flight') searchButton.textContent = 'Search Flights';
+        else if (type === 'bus') searchButton.textContent = 'Search Buses';
+        else if (type === 'stay') searchButton.textContent = 'Search Accommodations';
+        else if (type === 'package') searchButton.textContent = 'Search Packages';
+        else searchButton.textContent = 'Search';
+    };
+
+    const applyProductTypeUI = (type) => {
+        // Default: show all groups
+        if (originGroup) originGroup.style.display = 'block';
+        if (destinationGroup) destinationGroup.style.display = 'block';
+        if (departureGroup) departureGroup.style.display = 'block';
+        if (returnDateGroup) returnDateGroup.style.display = 'block';
+        if (tripTypeSelector) tripTypeSelector.style.display = 'flex';
+
+        if (type === 'flight' || type === 'bus') {
+            if (originLabel) originLabel.textContent = type === 'flight' ? 'From' : 'From (city or station)';
+            if (destinationLabel) destinationLabel.textContent = type === 'flight' ? 'To' : 'To (city or station)';
+            if (departureLabel) departureLabel.textContent = 'Departure Date';
+            if (returnLabel) returnLabel.textContent = 'Return Date';
+        } else if (type === 'stay') {
+            // Accommodations: hide origin, use destination + check-in/out
+            if (originGroup) originGroup.style.display = 'none';
+            if (destinationLabel) destinationLabel.textContent = 'Destination';
+            if (departureLabel) departureLabel.textContent = 'Check-in Date';
+            if (returnLabel) returnLabel.textContent = 'Check-out Date';
+            if (tripTypeSelector) tripTypeSelector.style.display = 'none';
+        } else if (type === 'package') {
+            // Packages: keep origin, destination, but name dates more generically
+            if (originLabel) originLabel.textContent = 'From (city or airport)';
+            if (destinationLabel) destinationLabel.textContent = 'Destination';
+            if (departureLabel) departureLabel.textContent = 'Trip Start Date';
+            if (returnLabel) returnLabel.textContent = 'Trip End Date';
+            if (tripTypeSelector) tripTypeSelector.style.display = 'none';
+        }
+
+        // Adjust placeholders if fields exist
+        if (originInput) {
+            if (type === 'stay') {
+                originInput.placeholder = originInput.getAttribute('placeholder') || originInput.placeholder;
+            } else if (type === 'bus') {
+                originInput.placeholder = 'From (city or station)';
+            } else {
+                originInput.placeholder = 'From (city or airport)';
+            }
+        }
+
+        if (destinationInput) {
+            if (type === 'stay') {
+                destinationInput.placeholder = 'Destination (city or area)';
+            } else if (type === 'bus') {
+                destinationInput.placeholder = 'To (city or station)';
+            } else {
+                destinationInput.placeholder = 'To (city or airport)';
+            }
+        }
+    };
+
+    productButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            productButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const type = btn.getAttribute('data-type') || 'flight';
+            if (productTypeInput) {
+                productTypeInput.value = type;
+            }
+            updateSearchButtonText(type);
+            applyProductTypeUI(type);
+        });
+    });
+
+    // Initial button text
+    const initialType = productTypeInput ? productTypeInput.value : 'flight';
+    updateSearchButtonText(initialType);
+    applyProductTypeUI(initialType);
+</script>
+{% endblock %}
+
+

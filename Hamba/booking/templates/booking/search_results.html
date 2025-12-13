@@ -1,0 +1,105 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h2>Select Your Trip</h2>
+        <div class="search-summary">
+            <span><strong>{{ search_params.origin }}</strong> → <strong>{{ search_params.destination }}</strong></span>
+            <span>{{ search_params.departure_date }}</span>
+            {% if search_params.return_date %}
+                <span>Return: {{ search_params.return_date }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="results-layout">
+        <div class="results-main">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="flight-card">
+                    <div class="flight-header">
+                        <h3>Outbound Flight</h3>
+                    </div>
+                    <div class="flight-details">
+                        <div class="flight-info">
+                            <div class="airline">{{ flights.0.airline }} {{ flights.0.flight_number }}</div>
+                            <div class="route">
+                                <div class="departure">
+                                    <div class="time">{{ flights.0.departure_time }}</div>
+                                    <div class="airport">{{ flights.0.origin }}</div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div class="arrival">
+                                    <div class="time">{{ flights.0.arrival_time }}</div>
+                                    <div class="airport">{{ flights.0.destination }}</div>
+                                </div>
+                            </div>
+                            <div class="cabin">{{ flights.0.cabin }}</div>
+                        </div>
+                        <div class="flight-price">
+                            <div class="price">R{{ flights.0.price|floatformat:2 }}</div>
+                            <div class="taxes">+ R{{ flights.0.taxes|floatformat:2 }} taxes</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if flights|length > 1 %}
+                <div class="flight-card">
+                    <div class="flight-header">
+                        <h3>Return Flight</h3>
+                    </div>
+                    <div class="flight-details">
+                        <div class="flight-info">
+                            <div class="airline">{{ flights.1.airline }} {{ flights.1.flight_number }}</div>
+                            <div class="route">
+                                <div class="departure">
+                                    <div class="time">{{ flights.1.departure_time }}</div>
+                                    <div class="airport">{{ flights.1.origin }}</div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div class="arrival">
+                                    <div class="time">{{ flights.1.arrival_time }}</div>
+                                    <div class="airport">{{ flights.1.destination }}</div>
+                                </div>
+                            </div>
+                            <div class="cabin">{{ flights.1.cabin }}</div>
+                        </div>
+                        <div class="flight-price">
+                            <div class="price">R{{ flights.1.price|floatformat:2 }}</div>
+                            <div class="taxes">+ R{{ flights.1.taxes|floatformat:2 }} taxes</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary btn-large">Continue to Booking</button>
+            </form>
+        </div>
+
+        <div class="results-sidebar">
+            <div class="price-summary-card">
+                <h3>Price Summary</h3>
+                <div class="price-breakdown">
+                    <div class="price-row">
+                        <span>Base Fare</span>
+                        <span>R{{ total_base|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row">
+                        <span>Taxes & Fees</span>
+                        <span>R{{ total_taxes|floatformat:2 }}</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total</span>
+                        <span>R{{ total_price|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

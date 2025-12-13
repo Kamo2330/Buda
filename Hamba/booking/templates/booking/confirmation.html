@@ -1,0 +1,135 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="confirmation-page">
+        <div class="confirmation-header">
+            <div class="success-icon">✓</div>
+            <h1>Booking Confirmed!</h1>
+            <p class="booking-reference">Booking Reference: <strong>{{ booking.reference }}</strong></p>
+            <p class="confirmation-message">Your booking has been confirmed. A confirmation email has been sent to {{ booking.contact_email }}</p>
+        </div>
+
+        <div class="confirmation-content">
+            <div class="confirmation-main">
+                <div class="section-card">
+                    <h2>Flights Breakdown</h2>
+                    
+                    {% for segment in booking.flight_segments.all %}
+                    <div class="flight-breakdown-card">
+                        <div class="flight-breakdown-header">
+                            <span class="flight-number">{{ segment.airline_name }} {{ segment.flight_number }}</span>
+                            <span class="flight-direction">{{ segment.direction|default:"Flight" }}</span>
+                        </div>
+                        <div class="flight-breakdown-details">
+                            <div class="flight-timing">
+                                <div class="departure">
+                                    <div class="time">{{ segment.departure_datetime|date:"g:i a" }}</div>
+                                    <div class="date">{{ segment.departure_datetime|date:"F jS" }}</div>
+                                    <div class="airport">
+                                        <strong>{{ segment.origin_airport_code }}</strong> {{ segment.origin_airport_name }}
+                                    </div>
+                                </div>
+                                <div class="arrow">→</div>
+                                <div class="arrival">
+                                    <div class="time">{{ segment.arrival_datetime|date:"g:i a" }}</div>
+                                    <div class="date">{{ segment.arrival_datetime|date:"F jS" }}</div>
+                                    <div class="airport">
+                                        <strong>{{ segment.destination_airport_code }}</strong> {{ segment.destination_airport_name }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flight-meta">
+                                <div class="cabin">Cabin: {{ segment.cabin_class|title }}</div>
+                                <div class="baggage">
+                                    {% if segment.hand_baggage_kg %}
+                                        <span>{{ segment.hand_baggage_kg }}kg hand baggage</span>
+                                    {% endif %}
+                                    {% if segment.checked_baggage_kg %}
+                                        <span>{{ segment.checked_baggage_kg }}kg checked baggage</span>
+                                    {% endif %}
+                                    {% if not segment.hand_baggage_kg and not segment.checked_baggage_kg %}
+                                        <span>No checked baggage</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="section-card">
+                    <h2>Travelers</h2>
+                    <div class="travelers-list">
+                        {% for traveler in booking.travelers.all %}
+                        <div class="traveler-item">
+                            <strong>{{ traveler.first_name }} {{ traveler.last_name }}</strong>
+                            {% if traveler.date_of_birth %}
+                                <span>DOB: {{ traveler.date_of_birth|date:"M d, Y" }}</span>
+                            {% endif %}
+                            {% if traveler.is_primary_contact %}
+                                <span class="badge">Primary Contact</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if booking.extras.all %}
+                <div class="section-card">
+                    <h2>Selected Extras</h2>
+                    <div class="extras-list">
+                        {% for extra in booking.extras.all %}
+                        <div class="extra-item-confirmed">
+                            <span>{{ extra.get_extra_type_display }}</span>
+                            <span>R{{ extra.price|floatformat:2 }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="confirmation-sidebar">
+                <div class="price-summary-card">
+                    <h3>Price Breakdown</h3>
+                    <div class="price-breakdown">
+                        <div class="price-row">
+                            <span>Airfare per adult:</span>
+                            <span>R{{ booking.total_base_fare|floatformat:2 }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Total airport taxes:</span>
+                            <span>R{{ booking.total_taxes|floatformat:2 }}</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Total extras:</span>
+                            <span>R{{ booking.total_extras|floatformat:2 }}</span>
+                        </div>
+                        <div class="price-row total">
+                            <span>Total price:</span>
+                            <span>R{{ booking.total_price|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>Important Information</h3>
+                    <ul>
+                        <li>Please arrive at the airport at least 2 hours before departure</li>
+                        <li>Bring a valid ID or passport for check-in</li>
+                        <li>Check your email for e-tickets and boarding passes</li>
+                        <li>Contact us if you need to make changes to your booking</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="confirmation-actions">
+            <a href="{% url 'booking:home' %}" class="btn btn-primary">Book Another Trip</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
