@@ -14,66 +14,75 @@
         </div>
     </div>
 
+    <p class="results-sort-note">Flights sorted by price (cheapest first).</p>
+
     <div class="results-layout">
         <div class="results-main">
             <form method="post">
                 {% csrf_token %}
-                
-                <div class="flight-card">
-                    <div class="flight-header">
-                        <h3>Outbound Flight</h3>
-                    </div>
-                    <div class="flight-details">
-                        <div class="flight-info">
-                            <div class="airline">{{ flights.0.airline }} {{ flights.0.flight_number }}</div>
-                            <div class="route">
-                                <div class="departure">
-                                    <div class="time">{{ flights.0.departure_time }}</div>
-                                    <div class="airport">{{ flights.0.origin }}</div>
+                {% for option in trip_options %}
+                <div class="trip-option-card">
+                    <label class="trip-option-radio">
+                        <input type="radio" name="selected_option" value="{{ forloop.counter0 }}" {% if forloop.first %}checked{% endif %}>
+                        <span class="trip-option-total">R{{ option.total_price|floatformat:2 }} total</span>
+                    </label>
+                    <div class="flight-card">
+                        <div class="flight-header">
+                            <h3>Outbound</h3>
+                        </div>
+                        <div class="flight-details">
+                            <div class="flight-info">
+                                <div class="airline">{{ option.outbound.airline }} {{ option.outbound.flight_number }}</div>
+                                <div class="route">
+                                    <div class="departure">
+                                        <div class="time">{{ option.outbound.departure_time }}</div>
+                                        <div class="airport">{{ option.outbound.origin }}</div>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div class="arrival">
+                                        <div class="time">{{ option.outbound.arrival_time }}</div>
+                                        <div class="airport">{{ option.outbound.destination }}</div>
+                                    </div>
                                 </div>
-                                <div class="arrow">→</div>
-                                <div class="arrival">
-                                    <div class="time">{{ flights.0.arrival_time }}</div>
-                                    <div class="airport">{{ flights.0.destination }}</div>
-                                </div>
+                                <div class="cabin">{{ option.outbound.cabin }}</div>
                             </div>
-                            <div class="cabin">{{ flights.0.cabin }}</div>
+                            <div class="flight-price">
+                                <div class="price">R{{ option.outbound.price|floatformat:2 }}</div>
+                                <div class="taxes">+ R{{ option.outbound.taxes|floatformat:2 }} taxes</div>
+                            </div>
                         </div>
-                        <div class="flight-price">
-                            <div class="price">R{{ flights.0.price|floatformat:2 }}</div>
-                            <div class="taxes">+ R{{ flights.0.taxes|floatformat:2 }} taxes</div>
+                    </div>
+                    <div class="flight-card">
+                        <div class="flight-header">
+                            <h3>Return</h3>
                         </div>
+                        <div class="flight-details">
+                            <div class="flight-info">
+                                <div class="airline">{{ option.return.airline }} {{ option.return.flight_number }}</div>
+                                <div class="route">
+                                    <div class="departure">
+                                        <div class="time">{{ option.return.departure_time }}</div>
+                                        <div class="airport">{{ option.return.origin }}</div>
+                                    </div>
+                                    <div class="arrow">→</div>
+                                    <div class="arrival">
+                                        <div class="time">{{ option.return.arrival_time }}</div>
+                                        <div class="airport">{{ option.return.destination }}</div>
+                                    </div>
+                                </div>
+                                <div class="cabin">{{ option.return.cabin }}</div>
+                            </div>
+                            <div class="flight-price">
+                                <div class="price">R{{ option.return.price|floatformat:2 }}</div>
+                                <div class="taxes">+ R{{ option.return.taxes|floatformat:2 }} taxes</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="trip-option-footer">
+                        <strong>Total: R{{ option.total_price|floatformat:2 }}</strong> (incl. taxes)
                     </div>
                 </div>
-
-                {% if flights|length > 1 %}
-                <div class="flight-card">
-                    <div class="flight-header">
-                        <h3>Return Flight</h3>
-                    </div>
-                    <div class="flight-details">
-                        <div class="flight-info">
-                            <div class="airline">{{ flights.1.airline }} {{ flights.1.flight_number }}</div>
-                            <div class="route">
-                                <div class="departure">
-                                    <div class="time">{{ flights.1.departure_time }}</div>
-                                    <div class="airport">{{ flights.1.origin }}</div>
-                                </div>
-                                <div class="arrow">→</div>
-                                <div class="arrival">
-                                    <div class="time">{{ flights.1.arrival_time }}</div>
-                                    <div class="airport">{{ flights.1.destination }}</div>
-                                </div>
-                            </div>
-                            <div class="cabin">{{ flights.1.cabin }}</div>
-                        </div>
-                        <div class="flight-price">
-                            <div class="price">R{{ flights.1.price|floatformat:2 }}</div>
-                            <div class="taxes">+ R{{ flights.1.taxes|floatformat:2 }} taxes</div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
+                {% endfor %}
 
                 <button type="submit" class="btn btn-primary btn-large">Continue to Booking</button>
             </form>
@@ -82,24 +91,9 @@
         <div class="results-sidebar">
             <div class="price-summary-card">
                 <h3>Price Summary</h3>
-                <div class="price-breakdown">
-                    <div class="price-row">
-                        <span>Base Fare</span>
-                        <span>R{{ total_base|floatformat:2 }}</span>
-                    </div>
-                    <div class="price-row">
-                        <span>Taxes & Fees</span>
-                        <span>R{{ total_taxes|floatformat:2 }}</span>
-                    </div>
-                    <div class="price-row total">
-                        <span>Total</span>
-                        <span>R{{ total_price|floatformat:2 }}</span>
-                    </div>
-                </div>
+                <p class="sidebar-hint">Select a flight option on the left. The total for your selection will be shown at checkout.</p>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
-
-

@@ -9,20 +9,22 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <header class="header">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header class="header" role="banner">
         <div class="container">
             <div class="header-content">
-                <a href="{% url 'booking:home' %}" class="logo">
-                    <h1><span class="logo-bag">🧳</span>Hamba</h1>
+                <a href="{% url 'booking:home' %}" class="logo" aria-label="Hamba home">
+                    <span class="logo-bag" aria-hidden="true">🧳</span>
+                    <span>Hamba</span>
                 </a>
             </div>
         </div>
     </header>
 
-    <main class="main-content">
+    <main id="main-content" class="main-content" role="main">
         {% if messages %}
             <div class="container">
-                <div class="messages">
+                <div class="messages" role="status" aria-live="polite">
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags }}">
                             {{ message }}
@@ -35,13 +37,14 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
         <div class="container">
-            <p>&copy; 2024 Hamba. All rights reserved.</p>
+            <p>&copy; 2025 Hamba. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="{% static 'booking/js/main.js' %}"></script>
+    <script src="{% static 'booking/js/smart-datepicker.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

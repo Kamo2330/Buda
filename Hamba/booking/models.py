@@ -26,7 +26,6 @@ class Booking(models.Model):
         help_text="Public booking reference shown to customer (e.g. HAM12345).",
     )
 
-    # Pricing summary (for the whole booking)
     currency = CurrencyField(default="ZAR")
     total_base_fare = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))]
@@ -50,7 +49,6 @@ class Booking(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Meta info (channel, source, notes)
     source = models.CharField(
         max_length=50, blank=True, help_text="Source of booking (web, agent, etc.)."
     )
@@ -234,141 +232,25 @@ class Payment(models.Model):
         return f"{self.booking.reference} - {self.amount} {self.currency} ({self.status})"
 
 
-def create_sample_booking(reference: str = "HAM12345") -> Booking:
-    """
-    Convenience helper to create a sample booking that matches the user's example.
-    Call from the Django shell:
+class Airport(models.Model):
+    """Airport directory for global autocomplete."""
 
-        from booking.models import create_sample_booking
-        booking = create_sample_booking()
-    """
-    from django.utils import timezone as dj_timezone
+    iata_code = models.CharField(
+        max_length=3,
+        unique=True,
+        help_text="3-letter IATA code (e.g. JNB, JFK, LHR).",
+    )
+    name = models.CharField(max_length=255, help_text="Airport name.")
+    city = models.CharField(max_length=100, help_text="City or metro area.")
+    country = models.CharField(max_length=100, help_text="Country name.")
 
-    # Prices from your example
-    airfare_per_adult = Decimal("1097")
-    total_airport_taxes = Decimal("1046")
-    # Extras from your example: 27 + 199 + 9 + 339 = 574
-    whatsapp_ticket_price = Decimal("27")
-    insurance_price = Decimal("199")
-    sms_ticket_price = Decimal("9")
-    date_change_price = Decimal("339")
-
-    total_extras = (
-        whatsapp_ticket_price + insurance_price + sms_ticket_price + date_change_price
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Use this to disable closed / inactive airports.",
     )
 
-    total_price = airfare_per_adult + total_airport_taxes + total_extras
+    class Meta:
+        ordering = ["city", "name"]
 
-    booking = Booking.objects.create(
-        reference=reference,
-        currency="ZAR",
-        total_base_fare=airfare_per_adult,
-        total_taxes=total_airport_taxes,
-        total_extras=total_extras,
-        total_price=total_price,
-        contact_email="guest@example.com",
-        contact_phone="0000000000",
-        status=Booking.Status.PENDING,
-        source="sample_data",
-    )
-
-    # One traveler as example
-    Traveler.objects.create(
-        booking=booking,
-        first_name="Sample",
-        last_name="Traveler",
-        is_primary_contact=True,
-    )
-
-    # Extras
-    BookingExtra.objects.create(
-        booking=booking,
-        extra_type=ExtraType.WHATSAPP_TICKET,
-        description="Get your ticket via WHATSAPP",
-        price=whatsapp_ticket_price,
-        currency="ZAR",
-    )
-    BookingExtra.objects.create(
-        booking=booking,
-        extra_type=ExtraType.REFUND_INSURANCE,
-        description=(
-            "Receive a full refund of airfare and taxes in the event "
-            "of sudden illness, death or hospitalisation of yourself or "
-            "a close relative, prior to departure."
-        ),
-        price=insurance_price,
-        currency="ZAR",
-    )
-    BookingExtra.objects.create(
-        booking=booking,
-        extra_type=ExtraType.SMS_TICKET,
-        description="Get your ticket via SMS",
-        price=sms_ticket_price,
-        currency="ZAR",
-    )
-    BookingExtra.objects.create(
-        booking=booking,
-        extra_type=ExtraType.DATE_CHANGE_OPTION,
-        description=(
-            "Make one date change to your flight without paying the "
-            "airline penalty fee. You only pay the difference in fare "
-            "and taxes if applicable. Valid up to 24 hours prior to "
-            "departure of the original ticket."
-        ),
-        price=date_change_price,
-        currency="ZAR",
-    )
-
-    # Flight segments based on your example
-    # NOTE: Times are approximate examples; adjust as needed.
-    dec_20 = dj_timezone.datetime(2025, 12, 20, tzinfo=dj_timezone.get_current_timezone())
-    jan_30 = dj_timezone.datetime(2026, 1, 30, tzinfo=dj_timezone.get_current_timezone())
-
-    FlightSegment.objects.create(
-        booking=booking,
-        airline_name="LIFT",
-        flight_number="GE201",
-        origin_airport_code="JNB",
-        origin_airport_name="Johannesburg, O.R. Tambo International",
-        destination_airport_code="DUR",
-        destination_airport_name="Durban",
-        departure_datetime=dec_20.replace(hour=6, minute=0),
-        arrival_datetime=dec_20.replace(hour=7, minute=5),
-        cabin_class="ECONOMY",
-        hand_baggage_kg=Decimal("7.0"),
-        checked_baggage_kg=None,
-        direction="OUTBOUND",
-    )
-
-    FlightSegment.objects.create(
-        booking=booking,
-        airline_name="South African Airways",
-        flight_number="SA558",
-        origin_airport_code="DUR",
-        origin_airport_name="Durban",
-        destination_airport_code="JNB",
-        destination_airport_name="Johannesburg, O.R. Tambo International",
-        departure_datetime=jan_30.replace(hour=14, minute=40),
-        arrival_datetime=jan_30.replace(hour=15, minute=50),
-        cabin_class="ECONOMY",
-        hand_baggage_kg=Decimal("7.0"),
-        checked_baggage_kg=Decimal("23.0"),
-        direction="RETURN",
-    )
-
-    # Example payment record (optional)
-    Payment.objects.create(
-        booking=booking,
-        amount=total_price,
-        currency="ZAR",
-        method=Payment.Method.CARD,
-        status=Payment.Status.SUCCESS,
-        provider_reference="SAMPLE-TXN-001",
-    )
-
-    return booking
-
-
-
-
-
+    def __str__(self):
+        return f"{self.city} - {self.name} ({self.iata_code})"

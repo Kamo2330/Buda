@@ -99,3 +99,8 @@ class FlightSegmentAdmin(admin.ModelAdmin):
 
 
 
+
+
+
+
+

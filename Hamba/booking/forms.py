@@ -28,14 +28,14 @@ class FlightSearchForm(forms.Form):
     )
     departure_date = forms.DateField(
         widget=forms.DateInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control smart-datepicker',
             'type': 'date'
         })
     )
     return_date = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={
-            'class': 'form-control',
+            'class': 'form-control smart-datepicker',
             'type': 'date'
         })
     )
@@ -181,6 +181,11 @@ class PaymentMethodForm(forms.Form):
         widget=forms.RadioSelect(attrs={'class': 'payment-method-radio'}),
         initial=Payment.Method.CARD
     )
+
+
+
+
+
 
 
 

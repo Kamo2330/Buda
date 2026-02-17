@@ -12,8 +12,5 @@ urlpatterns = [
     path('booking/payment/', views.payment_method, name='payment_method'),
     path('booking/process/', views.process_payment, name='process_payment'),
     path('booking/confirmation/<str:booking_ref>/', views.confirmation, name='confirmation'),
+    path('airports/search/', views.airport_search, name='airport_search'),
 ]
-
-
-
-

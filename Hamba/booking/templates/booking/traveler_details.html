@@ -15,36 +15,62 @@
             <h2>Who's Traveling?</h2>
             <p class="section-description">Please provide details for all travelers</p>
 
-            <form method="post">
+            <form method="post" id="traveler-form">
                 {% csrf_token %}
-                
+
                 {% for i in "x"|ljust:num_travelers %}
-                <div class="traveler-form-card">
-                    <h3>Traveler {{ forloop.counter }}</h3>
+                <div class="traveler-form-card" data-traveler-index="{{ forloop.counter0 }}">
+                    <div class="traveler-card-header">
+                        <h3>Traveler {{ forloop.counter }}</h3>
+                        {% if not forloop.first %}
+                        <button type="button" class="btn-copy-from-first" data-target="{{ forloop.counter0 }}">📋 Copy from Traveler 1</button>
+                        {% endif %}
+                    </div>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>First Name *</label>
-                            <input type="text" name="traveler_{{ forloop.counter0 }}_first_name" class="form-control" required>
+                            <label for="traveler_{{ forloop.counter0 }}_first_name">First Name *</label>
+                            <input type="text" id="traveler_{{ forloop.counter0 }}_first_name" name="traveler_{{ forloop.counter0 }}_first_name" class="form-control" placeholder="First name" required>
                         </div>
                         <div class="form-group">
-                            <label>Last Name *</label>
-                            <input type="text" name="traveler_{{ forloop.counter0 }}_last_name" class="form-control" required>
+                            <label for="traveler_{{ forloop.counter0 }}_last_name">Last Name *</label>
+                            <input type="text" id="traveler_{{ forloop.counter0 }}_last_name" name="traveler_{{ forloop.counter0 }}_last_name" class="form-control" placeholder="Last name" required>
                         </div>
                         <div class="form-group">
-                            <label>Date of Birth *</label>
-                            <input type="date" name="traveler_{{ forloop.counter0 }}_date_of_birth" class="form-control" required>
+                            <label for="traveler_{{ forloop.counter0 }}_date_of_birth">Date of Birth *</label>
+                            <input type="date" id="traveler_{{ forloop.counter0 }}_date_of_birth" name="traveler_{{ forloop.counter0 }}_date_of_birth" class="form-control smart-datepicker" max="{{ today|date:'Y-m-d' }}" required>
+                            <span class="age-hint" id="age_traveler_{{ forloop.counter0 }}"></span>
                         </div>
                         <div class="form-group">
-                            <label>ID / Passport Number</label>
-                            <input type="text" name="traveler_{{ forloop.counter0 }}_document_number" class="form-control">
+                            <label for="traveler_{{ forloop.counter0 }}_document_number">ID / Passport Number</label>
+                            <input type="text" id="traveler_{{ forloop.counter0 }}_document_number" name="traveler_{{ forloop.counter0 }}_document_number" class="form-control" placeholder="ID or passport number">
                         </div>
                         <div class="form-group">
-                            <label>Nationality</label>
-                            <input type="text" name="traveler_{{ forloop.counter0 }}_nationality" class="form-control">
+                            <label for="traveler_{{ forloop.counter0 }}_nationality">Nationality</label>
+                            <select id="traveler_{{ forloop.counter0 }}_nationality" name="traveler_{{ forloop.counter0 }}_nationality" class="form-control">
+                                <option value="">Select nationality</option>
+                                <option value="South African">South African</option>
+                                <option value="American">American</option>
+                                <option value="British">British</option>
+                                <option value="Canadian">Canadian</option>
+                                <option value="Australian">Australian</option>
+                                <option value="German">German</option>
+                                <option value="French">French</option>
+                                <option value="Indian">Indian</option>
+                                <option value="Chinese">Chinese</option>
+                                <option value="Brazilian">Brazilian</option>
+                                <option value="Nigerian">Nigerian</option>
+                                <option value="Kenyan">Kenyan</option>
+                                <option value="Egyptian">Egyptian</option>
+                                <option value="Zimbabwean">Zimbabwean</option>
+                                <option value="Botswanan">Botswanan</option>
+                                <option value="Namibian">Namibian</option>
+                                <option value="Mozambican">Mozambican</option>
+                                <option value="Other">Other</option>
+                            </select>
                         </div>
                         <div class="form-group full-width">
-                            <label>Special Requests (Optional)</label>
-                            <textarea name="traveler_{{ forloop.counter0 }}_special_requests" class="form-control" rows="2"></textarea>
+                            <label for="traveler_{{ forloop.counter0 }}_special_requests">Special Requests (Optional)</label>
+                            <textarea id="traveler_{{ forloop.counter0 }}_special_requests" name="traveler_{{ forloop.counter0 }}_special_requests" class="form-control" rows="2" placeholder="e.g. wheelchair, meal preference"></textarea>
                         </div>
                     </div>
                 </div>
@@ -84,6 +110,47 @@
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Age display from date of birth
+    function showAge(input) {
+        var name = input.name || '';
+        var match = name.match(/traveler_(\d+)_date_of_birth/);
+        var hint = match ? document.getElementById('age_traveler_' + match[1]) : null;
+        if (!hint) return;
+        var val = input.value;
+        if (!val) { hint.textContent = ''; return; }
+        var birth = new Date(val);
+        var today = new Date();
+        var age = today.getFullYear() - birth.getFullYear();
+        var m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        if (age >= 0 && age <= 120) hint.textContent = 'Age: ' + age + ' years';
+        else hint.textContent = '';
+    }
+    document.querySelectorAll('input[name$="_date_of_birth"]').forEach(function(inp) {
+        inp.addEventListener('change', function() { showAge(this); });
+        showAge(inp);
+    });
 
-
-
+    // Copy from Traveler 1
+    document.querySelectorAll('.btn-copy-from-first').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var target = this.getAttribute('data-target');
+            ['first_name', 'last_name', 'date_of_birth', 'document_number', 'nationality', 'special_requests'].forEach(function(field) {
+                var src = document.querySelector('[name="traveler_0_' + field + '"]');
+                var dst = document.querySelector('[name="traveler_' + target + '_' + field + '"]');
+                if (src && dst) {
+                    dst.value = src.value;
+                    if (field === 'date_of_birth') showAge(dst);
+                }
+            });
+            this.textContent = '✓ Copied';
+            var t = this;
+            setTimeout(function() { t.textContent = '📋 Copy from Traveler 1'; }, 2000);
+        });
+    });
+});
+</script>
+{% endblock %}
