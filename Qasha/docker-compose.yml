@@ -1,0 +1,25 @@
+# Local PostgreSQL for Qasha development / staging.
+# Start: docker compose up -d
+# Then: copy .env.example to .env, pip install -r requirements.txt, python manage.py migrate
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: qasha-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: qasha
+      POSTGRES_USER: qasha
+      POSTGRES_PASSWORD: qasha
+    ports:
+      - "5432:5432"
+    volumes:
+      - qasha_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qasha -d qasha"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  qasha_pgdata:

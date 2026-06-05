@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load qasha_extras %}
+
+{% block title %}Request booking · {{ property.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-steps { display: flex; gap: .5rem; margin-bottom: 1.25rem; }
+    .booking-step {
+        flex: 1;
+        text-align: center;
+        padding: .5rem;
+        border-radius: .5rem;
+        font-size: .75rem;
+        font-weight: 600;
+        background: #f1f5f9;
+        color: #64748b;
+    }
+    .booking-step.active { background: #dbeafe; color: #1d4ed8; }
+    .booking-step.done { background: #dcfce7; color: #166534; }
+    .fee-box {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: .75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 560px;">
+    <nav class="mb-3">
+        <a href="{% url 'rentals:property_detail' property.pk %}" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i>Back to place</a>
+    </nav>
+    <h1 class="h4 text-primary mb-2">Request booking</h1>
+    <p class="text-muted mb-3">{{ property.title }} · {{ property.suburb }}, {{ property.city }}</p>
+
+    {% if uses_platform_payment %}
+    <div class="booking-steps" aria-label="Booking steps">
+        <div class="booking-step {% if booking_step == 1 %}active{% elif booking_step > 1 %}done{% endif %}">1. Dates</div>
+        <div class="booking-step {% if booking_step == 2 %}active{% endif %}">2. Authorize payment</div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            {% if booking_step == 1 %}
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="booking_step" value="1">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <h2 class="h6 text-primary mb-3">Step 1 — Your dates</h2>
+                <div class="mb-3">
+                    <label class="form-label" for="{{ form.check_in_date.id_for_label }}">{{ form.check_in_date.label }}</label>
+                    {{ form.check_in_date }}
+                    {{ form.check_in_date.errors }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="{{ form.check_out_date.id_for_label }}">{{ form.check_out_date.label }}</label>
+                    {{ form.check_out_date }}
+                    {% if form.check_out_date.help_text %}<div class="form-text">{{ form.check_out_date.help_text }}</div>{% endif %}
+                    {{ form.check_out_date.errors }}
+                </div>
+                {% if form.checkout_unknown %}
+                <div class="form-check mb-3">
+                    {{ form.checkout_unknown }}
+                    <label class="form-check-label" for="{{ form.checkout_unknown.id_for_label }}">{{ form.checkout_unknown.label }}</label>
+                </div>
+                {% endif %}
+                <div class="mb-4">
+                    <label class="form-label" for="{{ form.special_requests.id_for_label }}">Note to the owner (optional)</label>
+                    {{ form.special_requests }}
+                    {{ form.special_requests.errors }}
+                </div>
+
+                {% if uses_platform_payment %}
+                <p class="small text-muted mb-3">Next: authorize {{ securing_amount|zar:2 }} on your card (hold only — not charged until the owner accepts).</p>
+                <button type="submit" class="btn btn-primary w-100 py-2">Continue</button>
+                {% else %}
+                <button type="submit" class="btn btn-primary w-100 py-2">Request booking</button>
+                {% endif %}
+            </form>
+
+            {% elif booking_step == 2 %}
+            <div class="fee-box">
+                <p class="small text-muted mb-1">Amount to secure this space</p>
+                <p class="h4 text-primary mb-2">{{ securing_amount|zar:2 }}</p>
+                <ul class="small mb-0 ps-3">
+                    <li>We <strong>authorize</strong> this amount on your card (hold).</li>
+                    <li>You are <strong>not fully charged</strong> yet.</li>
+                    <li>If the owner <strong>accepts</strong>, payment is <strong>captured</strong> automatically.</li>
+                    <li>If they <strong>decline</strong>, the authorization is <strong>released</strong> — no refund needed.</li>
+                </ul>
+            </div>
+
+            {% if draft %}
+            <p class="small text-muted mb-3">
+                <i class="fas fa-calendar me-1"></i>
+                {% if draft.check_out %}{{ draft.check_in }} — {{ draft.check_out }}{% else %}Move-in: {{ draft.check_in }}{% endif %}
+                · <a href="{% url 'rentals:create_booking' property.pk %}">Change dates</a>
+            </p>
+            {% endif %}
+
+            <form method="post" action="{% url 'rentals:create_booking' property.pk %}?step=2" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="booking_step" value="2">
+                {% if draft %}
+                <input type="hidden" name="draft_check_in" value="{{ draft.check_in }}">
+                <input type="hidden" name="draft_check_out" value="{{ draft.check_out }}">
+                <input type="hidden" name="draft_special_requests" value="{{ draft.special_requests }}">
+                {% endif %}
+                {% if payment_form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Please fix these issues:</strong>
+                    <ul class="mb-0 mt-1">
+                        {% for field, errors in payment_form.errors.items %}
+                            {% for error in errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if payment_form.non_field_errors %}
+                    <div class="alert alert-danger">{{ payment_form.non_field_errors }}</div>
+                {% endif %}
+
+                <h2 class="h6 text-primary mb-3">Step 2 — Payment method</h2>
+                <p class="small text-muted mb-3">Qasha stores your booking request and authorizes your card. The owner will see a <strong>new booking request</strong> to accept or decline.</p>
+                <div class="mb-3">
+                    <label class="form-label" for="{{ payment_form.cardholder_name.id_for_label }}">{{ payment_form.cardholder_name.label }}</label>
+                    {{ payment_form.cardholder_name }}
+                    {% if payment_form.cardholder_name.errors %}<div class="text-danger small">{{ payment_form.cardholder_name.errors }}</div>{% endif %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="{{ payment_form.card_number.id_for_label }}">{{ payment_form.card_number.label }}</label>
+                    {{ payment_form.card_number }}
+                    {% if payment_form.card_number.errors %}<div class="text-danger small">{{ payment_form.card_number.errors }}</div>{% endif %}
+                </div>
+                <div class="row g-2 mb-4">
+                    <div class="col-6">
+                        <label class="form-label" for="{{ payment_form.card_expiry.id_for_label }}">{{ payment_form.card_expiry.label }}</label>
+                        {{ payment_form.card_expiry }}
+                        {% if payment_form.card_expiry.errors %}<div class="text-danger small">{{ payment_form.card_expiry.errors }}</div>{% endif %}
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" for="{{ payment_form.card_cvv.id_for_label }}">{{ payment_form.card_cvv.label }}</label>
+                        {{ payment_form.card_cvv }}
+                        {% if payment_form.card_cvv.errors %}<div class="text-danger small">{{ payment_form.card_cvv.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    <i class="fas fa-paper-plane me-2"></i>Request booking
+                </button>
+                <p class="small text-muted text-center mt-2 mb-0">
+                    By requesting, you authorize a hold of {{ securing_amount|zar:2 }}. Capture only if the owner accepts.
+                </p>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const unknown = document.getElementById('id_checkout_unknown');
+    const checkout = document.getElementById('id_check_out_date');
+    if (!unknown || !checkout) return;
+    function sync() {
+        const hide = unknown.checked;
+        checkout.disabled = hide;
+        checkout.closest('.mb-3').classList.toggle('opacity-50', hide);
+        if (hide) checkout.value = '';
+    }
+    unknown.addEventListener('change', sync);
+    sync();
+})();
+</script>
+{% endblock %}

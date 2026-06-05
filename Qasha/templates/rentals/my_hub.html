@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage · Qasha{% endblock %}
+
+{% block extra_css %}
+<style>
+.manage-page { max-width: 520px; margin: 0 auto; }
+.manage-page h1 { font-size: 1.35rem; font-weight: 700; color: #1e40af; margin-bottom: 1rem; }
+.manage-list {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: .75rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.manage-row {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .95rem 1rem;
+    text-decoration: none;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background .12s;
+}
+.manage-row:last-child { border-bottom: none; }
+.manage-row:hover { background: #f8fafc; color: #1e40af; }
+.manage-row i.icon { width: 1.35rem; text-align: center; font-size: 1.1rem; }
+.manage-row .label { font-weight: 600; font-size: 1rem; flex: 1; }
+.manage-row .meta {
+    font-size: .8rem;
+    font-weight: 700;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    line-height: 1.25rem;
+    text-align: center;
+    border-radius: 1rem;
+    background: #dbeafe;
+    color: #1e40af;
+    padding: 0 .4rem;
+}
+.manage-row .meta.pending { background: #fef3c7; color: #b45309; }
+.manage-row .meta.empty { display: none; }
+.manage-row .chevron { color: #cbd5e1; font-size: .75rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 manage-page">
+    <h1>Manage</h1>
+    <div class="manage-list">
+        <a href="{% url 'rentals:wishlist' %}" class="manage-row">
+            <i class="fas fa-heart icon text-danger"></i>
+            <span class="label">Saved places</span>
+            <span class="meta{% if not wishlist_count %} empty{% endif %}">{{ wishlist_count }}</span>
+            <i class="fas fa-chevron-right chevron"></i>
+        </a>
+        <a href="{% url 'rentals:my_listings' %}" class="manage-row">
+            <i class="fas fa-home icon text-primary"></i>
+            <span class="label">Your listings</span>
+            <span class="meta{% if not listing_count %} empty{% endif %}">{{ listing_count }}</span>
+            <i class="fas fa-chevron-right chevron"></i>
+        </a>
+        <a href="{% url 'rentals:my_applications' %}" class="manage-row">
+            <i class="fas fa-file-alt icon text-primary"></i>
+            <span class="label">Applications</span>
+            <span class="meta{% if not my_applications_count %} empty{% endif %}">{{ my_applications_count }}</span>
+            <i class="fas fa-chevron-right chevron"></i>
+        </a>
+        <a href="{% url 'rentals:host_applications' %}" class="manage-row">
+            <i class="fas fa-inbox icon text-primary"></i>
+            <span class="label">Booking requests</span>
+            <span class="meta{% if not pending_host_count %} empty{% else %} pending{% endif %}">{{ pending_host_count }}</span>
+            <i class="fas fa-chevron-right chevron"></i>
+        </a>
+        <a href="{% url 'rentals:promotions' %}" class="manage-row">
+            <i class="fas fa-star icon text-warning"></i>
+            <span class="label">Promote &amp; verify</span>
+            <i class="fas fa-chevron-right chevron"></i>
+        </a>
+        <a href="{% url 'users:profile' %}" class="manage-row">
+            <i class="fas fa-user-circle icon text-secondary"></i>
+            <span class="label">Your profile</span>
+            <i class="fas fa-chevron-right chevron"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}

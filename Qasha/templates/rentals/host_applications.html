@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load qasha_extras %}
+
+{% block title %}Booking requests · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 720px;">
+    <nav class="mb-3">
+        <a href="{% url 'rentals:my_hub' %}" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i>Manage</a>
+    </nav>
+    <h1 class="h3 text-primary mb-2">Booking requests</h1>
+    <p class="text-muted mb-4">
+        New booking requests appear here. <strong>Accept</strong> captures payment and confirms the booking.
+        <strong>Decline</strong> releases the card authorization — the tenant was never fully charged.
+    </p>
+
+    {% for app in applications %}
+    <div class="card mb-3 shadow-sm {% if app.status == 'pending' %}border-warning{% endif %}">
+        <div class="card-body">
+            {% if app.status == 'pending' %}
+            <p class="small fw-bold text-warning mb-2 mb-md-1"><i class="fas fa-bell me-1"></i>New booking request</p>
+            {% endif %}
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <h2 class="h6 mb-0">{{ app.property.title }}</h2>
+                <span class="badge {% if app.status == 'secured' %}bg-success{% elif app.status == 'accepted' %}bg-primary{% elif app.status == 'pending' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                    {{ app.get_status_display }}
+                </span>
+            </div>
+            <p class="small mb-1"><strong>{{ app.guest.get_full_name|default:app.guest.username }}</strong></p>
+            <p class="small text-muted mb-2">
+                {% if app.check_out_date %}
+                    {{ app.check_in_date|date:"j M Y" }} — {{ app.check_out_date|date:"j M Y" }}
+                {% else %}
+                    Move-in: {{ app.check_in_date|date:"j M Y" }}
+                {% endif %}
+                · {{ app.total_amount|zar:2 }}
+            </p>
+            {% if app.special_requests %}<p class="small mb-2">{{ app.special_requests }}</p>{% endif %}
+            {% if app.is_payment_authorized and app.status == 'pending' %}
+            <p class="small text-muted mb-2">
+                <i class="fas fa-lock me-1"></i>{{ app.total_amount|zar:2 }} authorized on card •••• {{ app.payment_card_last4 }}
+                (hold — not captured yet). Accept to capture and confirm.
+            </p>
+            {% elif app.payment_auth_status == 'released' %}
+            <p class="small text-muted mb-2"><i class="fas fa-unlock me-1"></i>Card authorization released — tenant not charged.</p>
+            {% elif app.is_payment_captured %}
+            <p class="small text-success mb-2"><i class="fas fa-check-circle me-1"></i>Payment captured · booking confirmed.</p>
+            {% endif %}
+            {% if app.status == 'pending' %}
+            <div class="d-flex flex-wrap gap-2">
+                <form method="post" action="{% url 'rentals:booking_accept' app.pk %}" class="d-inline"
+                      onsubmit="return confirm('Accept this booking request? Payment of {{ app.total_amount|zar:2 }} will be captured from the tenant\\'s card.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        {% if app.is_payment_authorized %}Accept &amp; capture payment{% else %}Accept{% endif %}
+                    </button>
+                </form>
+                <form method="post" action="{% url 'rentals:booking_decline' app.pk %}" class="d-inline"
+                      onsubmit="return confirm('Decline this request? Any card authorization will be released.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Decline</button>
+                </form>
+                <a href="{% url 'rentals:message_thread' app.guest.pk %}?property={{ app.property_id }}" class="btn btn-sm btn-outline-secondary">Message tenant</a>
+            </div>
+            {% elif app.status == 'accepted' %}
+            <p class="small text-muted mb-0">Tenant will arrange payment with you directly.</p>
+            {% elif app.status == 'secured' %}
+            <p class="small text-success mb-0">
+                Booking confirmed{% if app.paid_at %} · {{ app.paid_at|date:"j M Y" }}{% endif %}.
+                Listing marked occupied.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">No booking requests yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

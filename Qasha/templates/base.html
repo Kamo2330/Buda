@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Qasha - Find the perfect room or home{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --secondary-blue: #1d4ed8;
+            --light-blue: #dbeafe;
+            --dark-blue: #1e40af;
+            --white: #ffffff;
+            --light-gray: #f8fafc;
+            --gray: #64748b;
+            --dark-gray: #334155;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.65;
+            font-size: 1.05rem;
+            color: var(--dark-gray);
+            background-color: var(--white);
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+        
+        .navbar {
+            background-color: var(--white) !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 0.9rem 0;
+        }
+        
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--primary-blue) !important;
+        }
+        
+        .nav-link {
+            color: var(--dark-gray) !important;
+            font-weight: 500;
+            margin: 0 0.25rem;
+            padding: 0.5rem 0.65rem !important;
+            border-radius: 0.5rem;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+        
+        .nav-link:hover {
+            color: var(--primary-blue) !important;
+            background: var(--light-blue);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            font-weight: 600;
+            padding: 0.65rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-blue);
+            border-color: var(--secondary-blue);
+            color: var(--white);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            font-weight: 600;
+            border-radius: 0.5rem;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            color: var(--white);
+            padding: 4rem 0;
+        }
+        
+        .card {
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            background: var(--white);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        
+        .property-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: var(--white);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        
+        .property-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12);
+        }
+        
+        .property-image {
+            height: 200px;
+            object-fit: cover;
+            width: 100%;
+        }
+        
+        .footer {
+            background-color: var(--dark-gray);
+            color: var(--white);
+            padding: 2.5rem 0 1.25rem;
+            margin-top: 2rem;
+        }
+        
+        .footer a, .footer .footer-link-btn {
+            color: var(--light-gray);
+            text-decoration: none;
+        }
+        
+        .footer a:hover, .footer .footer-link-btn:hover {
+            color: var(--white);
+        }
+        .footer-brand { font-size: 1.15rem; font-weight: 700; }
+        .footer-links li { margin-bottom: 0.5rem; }
+        .footer-legal {
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            padding-top: 1.25rem;
+            margin-top: 0.5rem;
+        }
+        .footer-legal a { font-size: 0.9rem; margin-right: 1.25rem; }
+        .footer-legal a:last-child { margin-right: 0; }
+        
+        .section-padding {
+            padding: 4rem 0;
+        }
+        
+        .text-primary {
+            color: var(--primary-blue) !important;
+        }
+        
+        .bg-light-blue {
+            background-color: var(--light-blue) !important;
+        }
+        
+        .icon-circle {
+            width: 60px;
+            height: 60px;
+            background-color: var(--light-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        
+        .icon-circle i {
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            font-size: 1.05rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+        }
+        
+        .alert {
+            border-radius: 0.5rem;
+            border: none;
+        }
+        
+        .badge {
+            border-radius: 0.5rem;
+            padding: 0.45rem 0.75rem;
+        }
+        
+        .badge-primary {
+            background-color: var(--primary-blue);
+        }
+
+        .help-nav-btn {
+            width: auto;
+            height: auto;
+            padding: 0.3rem 0.45rem !important;
+            border-radius: 0.55rem;
+            border: none;
+            background: transparent;
+            color: var(--dark-gray) !important;
+            line-height: 1.1;
+        }
+        .help-nav-btn:hover,
+        .help-nav-btn:focus {
+            background: var(--light-blue);
+            color: var(--primary-blue) !important;
+        }
+        .help-modal-content {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+        }
+        .help-faq .accordion-button {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+        .help-faq .accordion-button:not(.collapsed) {
+            color: var(--primary-blue);
+            background: transparent;
+        }
+        .pac-container {
+            z-index: 2000 !important;
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-msg-link { position: relative; display: inline-flex; align-items: center; }
+        .nav-msg-badge,
+        .nav-booking-badge {
+            position: absolute;
+            top: 2px;
+            right: -6px;
+            min-width: 1.15rem;
+            height: 1.15rem;
+            padding: 0 .35rem;
+            font-size: .7rem;
+            font-weight: 700;
+            line-height: 1.15rem;
+            border-radius: 999px;
+            color: #fff;
+            text-align: center;
+        }
+        .nav-msg-badge { background: #dc2626; }
+        .nav-booking-badge { background: #d97706; }
+
+        /* Horizontal nav — same links on mobile and desktop (no hamburger) */
+        .qasha-navbar {
+            padding: 0.5rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            max-width: 100%;
+            z-index: 1030;
+        }
+        .qasha-navbar > .container-fluid {
+            max-width: 100%;
+        }
+        .qasha-navbar-inner {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+        }
+        .qasha-navbar .navbar-brand {
+            font-size: 1.2rem;
+            padding: 0.25rem 0;
+            margin-right: 0;
+            flex: 0 0 auto;
+            white-space: nowrap;
+            font-weight: 800;
+        }
+        .qasha-nav-items {
+            display: flex;
+            align-items: stretch;
+            justify-content: flex-end;
+            gap: 0.15rem;
+            margin-left: auto;
+            flex: 1 1 auto;
+            min-width: 0;
+            flex-wrap: nowrap;
+        }
+        .qasha-nav-item {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.1rem;
+            padding: 0.3rem 0.35rem;
+            border-radius: 0.55rem;
+            color: var(--dark-gray) !important;
+            text-decoration: none;
+            font-size: 0.62rem;
+            font-weight: 700;
+            line-height: 1.1;
+            border: none;
+            background: transparent;
+            position: relative;
+            transition: color 0.2s ease, background 0.2s ease;
+            text-align: center;
+            min-width: 0;
+            font-family: inherit;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        /* Mobile-only compact icon bar — desktop overrides below */
+        .qasha-nav-item i {
+            font-size: 1.05rem;
+            font-weight: 900;
+        }
+        .qasha-nav-label {
+            font-weight: 700;
+            white-space: nowrap;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .qasha-nav-item:hover,
+        .qasha-nav-item:focus,
+        .qasha-nav-item.active {
+            color: var(--primary-blue) !important;
+            background: var(--light-blue);
+        }
+        .qasha-nav-item .nav-msg-badge,
+        .qasha-nav-item .nav-booking-badge {
+            top: 0;
+            right: 0.15rem;
+            min-width: 1.15rem;
+            height: 1.15rem;
+        }
+        .qasha-nav-item .nav-msg-badge.is-empty,
+        .qasha-nav-item .nav-booking-badge.is-empty {
+            visibility: hidden;
+        }
+        .qasha-nav-account {
+            position: relative;
+            min-width: 0;
+            display: flex;
+        }
+        .qasha-nav-account .qasha-nav-item {
+            width: 100%;
+            cursor: pointer;
+        }
+        .qasha-nav-account .dropdown-toggle::after {
+            display: none;
+        }
+        .qasha-account-menu {
+            z-index: 1050;
+            min-width: 13rem;
+            border-radius: 0.75rem;
+            padding: 0.35rem;
+            margin-top: 0.35rem !important;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        }
+        .qasha-account-menu .dropdown-header {
+            font-size: 0.875rem;
+            color: var(--dark-gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .qasha-account-menu .dropdown-item {
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .qasha-account-menu .dropdown-item:hover,
+        .qasha-account-menu .dropdown-item:focus {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+        .qasha-main {
+            margin-top: 72px;
+        }
+        .qasha-nav-signup-item {
+            background: var(--primary-blue);
+            color: var(--white) !important;
+        }
+        .qasha-nav-signup-item:hover,
+        .qasha-nav-signup-item:focus {
+            background: var(--secondary-blue);
+            color: var(--white) !important;
+        }
+        @media (max-width: 767.98px) {
+            .qasha-navbar {
+                padding: 0.35rem 0;
+            }
+            .qasha-main {
+                margin-top: 80px;
+            }
+            .qasha-navbar .navbar-brand {
+                font-size: 1rem;
+                justify-self: start;
+                padding: 0.2rem 0;
+            }
+            .qasha-navbar-inner {
+                display: grid;
+                grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+                align-items: center;
+                column-gap: 0.25rem;
+                width: 100%;
+            }
+            .qasha-nav-items {
+                display: grid;
+                margin-left: 0;
+                width: 100%;
+                min-width: 0;
+                gap: 0;
+            }
+            .qasha-nav-items--auth {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+            .qasha-nav-items--guest {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                align-items: center;
+                column-gap: 0;
+            }
+            .qasha-nav-item,
+            .qasha-nav-account {
+                min-width: 0;
+                max-width: 100%;
+            }
+            .qasha-nav-item {
+                width: 100%;
+                padding: 0.2rem 0.08rem;
+                min-height: 2.85rem;
+            }
+            .qasha-nav-label {
+                display: block;
+                font-size: 0.6rem;
+                font-weight: 700;
+                line-height: 1.05;
+                max-width: 100%;
+            }
+            .qasha-brand-text {
+                font-size: 0.9rem;
+                font-weight: 800;
+            }
+            .qasha-nav-account {
+                width: 100%;
+            }
+            .qasha-nav-account .qasha-nav-item {
+                width: 100%;
+            }
+            .qasha-nav-item .nav-msg-badge,
+            .qasha-nav-item .nav-booking-badge {
+                top: 0.05rem;
+                right: 0.05rem;
+                min-width: 0.95rem;
+                height: 0.95rem;
+                padding: 0 0.2rem;
+                font-size: 0.58rem;
+                line-height: 0.95rem;
+            }
+            .qasha-nav-item i {
+                font-size: 1rem;
+                font-weight: 900;
+            }
+        }
+        @media (min-width: 768px) {
+            .qasha-navbar { padding: 0.9rem 0; }
+            .qasha-navbar .navbar-brand { font-size: 1.4rem; }
+            .qasha-main { margin-top: 76px; }
+            .qasha-navbar-inner {
+                display: flex;
+                gap: 0.5rem;
+            }
+            .qasha-nav-items {
+                display: flex;
+                align-items: center;
+                margin-left: auto;
+                width: auto;
+                flex: 0 1 auto;
+                gap: 0.25rem;
+            }
+            .qasha-nav-item {
+                flex-direction: row;
+                font-size: 1rem;
+                font-weight: 700;
+                gap: 0.4rem;
+                padding: 0.5rem 0.75rem;
+                width: auto;
+                flex: 0 0 auto;
+                min-width: 0;
+                min-height: auto;
+                line-height: 1.4;
+            }
+            .qasha-nav-label {
+                display: inline;
+                font-size: inherit;
+                font-weight: 700;
+                max-width: none;
+            }
+            .qasha-nav-item i { font-size: 1.1rem; font-weight: 900; }
+            .qasha-nav-account {
+                flex: 0 0 auto;
+                width: auto;
+                min-width: 0;
+            }
+            .qasha-nav-account .qasha-nav-item {
+                width: auto;
+            }
+            .qasha-nav-signup-item {
+                padding: 0.5rem 0.85rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section { padding: 2rem 0; }
+            .section-padding { padding: 2rem 0; }
+        }
+
+        .qasha-avatar-btn { cursor: pointer; line-height: 0; }
+        .qasha-avatar-btn img { border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+        .qasha-avatar-fallback-inner {
+            font-weight: 700;
+            font-size: calc(var(--qasha-avatar-px, 48px) * 0.38);
+            line-height: 1;
+        }
+        .qasha-nav-account .qasha-avatar-btn img { border-color: var(--light-blue); width: 28px; height: 28px; }
+        .qasha-location-alert {
+            border-radius: 0;
+            border: 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            margin-bottom: 0;
+        }
+        .qasha-location-alert-text { font-size: 0.875rem; }
+        #qashaProfilePhotoModalInitial {
+            width: 120px;
+            height: 120px;
+            font-size: 3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        @media (max-width: 767.98px) {
+            .qasha-location-alert-text { font-size: 0.78rem; line-height: 1.35; }
+            .qasha-location-alert .btn { flex-shrink: 0; white-space: nowrap; }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-light fixed-top qasha-navbar">
+        <div class="container-fluid px-2 px-md-3">
+            <div class="qasha-navbar-inner">
+            <a class="navbar-brand" href="{% url 'rentals:property_list' %}">
+                <i class="fas fa-home"></i><span class="ms-1 qasha-brand-text">Qasha</span>
+            </a>
+
+            <div class="qasha-nav-items {% if user.is_authenticated %}qasha-nav-items--auth{% else %}qasha-nav-items--guest{% endif %}">
+                {% if user.is_authenticated %}
+                <a class="qasha-nav-item nav-msg-link {% if request.resolver_match.url_name == 'my_hub' or request.resolver_match.url_name == 'host_applications' or request.resolver_match.url_name == 'my_applications' %}active{% endif %}"
+                   href="{% url 'rentals:my_hub' %}"
+                   title="Manage"
+                   {% if booking_nav_count %}aria-label="Manage, {{ booking_nav_count }} actions"{% endif %}>
+                    <i class="fas fa-sliders-h"></i>
+                    <span class="qasha-nav-label">Manage</span>
+                    <span class="nav-booking-badge{% if not booking_nav_count %} is-empty{% endif %}">{% if booking_nav_count > 99 %}99+{% elif booking_nav_count %}{{ booking_nav_count }}{% else %}0{% endif %}</span>
+                </a>
+                <a class="qasha-nav-item nav-msg-link {% if request.resolver_match.url_name == 'message_inbox' or request.resolver_match.url_name == 'message_thread' %}active{% endif %}"
+                   href="{% url 'rentals:message_inbox' %}"
+                   title="Messages"
+                   {% if unread_message_count %}aria-label="Messages, {{ unread_message_count }} unread"{% endif %}>
+                    <i class="fas fa-comment-dots"></i>
+                    <span class="qasha-nav-label">Messages</span>
+                    <span class="nav-msg-badge{% if not unread_message_count %} is-empty{% endif %}">{% if unread_message_count > 99 %}99+{% elif unread_message_count %}{{ unread_message_count }}{% else %}0{% endif %}</span>
+                </a>
+                {% endif %}
+                <button type="button" class="qasha-nav-item help-nav-btn" data-bs-toggle="modal" data-bs-target="#helpModal" title="Help" aria-label="Help">
+                    <i class="fas fa-question"></i>
+                    <span class="qasha-nav-label">Help</span>
+                </button>
+                {% if user.is_authenticated %}
+                <div class="dropdown qasha-nav-account">
+                    <button type="button"
+                            class="qasha-nav-item dropdown-toggle {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                            data-bs-toggle="dropdown"
+                            data-bs-auto-close="true"
+                            aria-expanded="false"
+                            title="{{ user.first_name|default:user.username }}"
+                            aria-label="{{ user.first_name|default:user.username }} menu">
+                        {% load user_extras %}
+                        {% if user|user_has_profile_photo %}
+                        <span class="qasha-nav-avatar-wrap d-inline-flex align-items-center justify-content-center">
+                            <img src="{{ user|user_profile_photo_url }}" class="rounded-circle" width="28" height="28" alt="" style="object-fit:cover;">
+                        </span>
+                        {% else %}
+                        <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                        <span class="qasha-nav-label">{{ user.first_name|default:user.username|truncatechars:10 }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end qasha-account-menu">
+                        <li class="dropdown-header">{{ user.first_name|default:user.username|truncatechars:24 }}</li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item" href="{% url 'users:profile' %}"><i class="fas fa-id-card me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" href="{% url 'rentals:property_create' %}"><i class="fas fa-plus me-2"></i>List your place</a></li>
+                        <li><a class="dropdown-item" href="{% url 'rentals:promotions' %}"><i class="fas fa-shield-alt me-2"></i>Promote &amp; verify</a></li>
+                        {% if pending_host_booking_count %}
+                        <li><a class="dropdown-item" href="{% url 'rentals:host_applications' %}"><i class="fas fa-inbox me-2"></i>Booking requests <span class="badge bg-warning text-dark">{{ pending_host_booking_count }}</span></a></li>
+                        {% endif %}
+                        {% if guest_booking_action_count %}
+                        <li><a class="dropdown-item" href="{% url 'rentals:my_applications' %}"><i class="fas fa-file-alt me-2"></i>Applications <span class="badge bg-warning text-dark">{{ guest_booking_action_count }}</span></a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="{% url 'users:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item border-0 bg-transparent w-100 text-start">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Log out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+                {% else %}
+                <a class="qasha-nav-item" href="{% url 'users:login' %}" title="Login">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span class="qasha-nav-label">Login</span>
+                </a>
+                <a class="qasha-nav-item qasha-nav-signup-item" href="{% url 'users:signup' %}" title="Sign up">
+                    <i class="fas fa-user-plus"></i>
+                    <span class="qasha-nav-label">Sign up</span>
+                </a>
+                {% endif %}
+            </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="qasha-main">
+        {% if needs_home_location %}
+        <div class="alert alert-warning qasha-location-alert py-2 px-0" role="alert">
+            <div class="container d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <p class="qasha-location-alert-text mb-0">
+                    <strong><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>Home address needed.</strong>
+                    Add your suburb and city so we can show nearby listings.
+                </p>
+                <a href="{% url 'users:profile' %}#home-address" class="btn btn-warning btn-sm text-dark">Add address</a>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Messages -->
+        {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-5 col-md-6">
+                    <p class="footer-brand text-white mb-2">
+                        <i class="fas fa-home me-2"></i>Qasha
+                    </p>
+                    <p class="text-light mb-0 small">Making renting simple and secure. Browse listings, message hosts, and manage everything in one place.</p>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-white mb-3">Explore</h6>
+                    <ul class="list-unstyled footer-links mb-0">
+                        <li><a href="{% url 'rentals:property_list' %}">Home</a></li>
+                        <li><a href="{% url 'core:how_it_works' %}">How it works</a></li>
+                        <li><a href="{% url 'core:about' %}">About</a></li>
+                        <li>
+                            <button type="button" class="btn btn-link p-0 border-0 footer-link-btn text-start" data-bs-toggle="modal" data-bs-target="#helpModal">Help</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-12">
+                    <h6 class="text-white mb-3">Your account</h6>
+                    <ul class="list-unstyled footer-links mb-0">
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'rentals:my_hub' %}">Manage</a></li>
+                        <li><a href="{% url 'rentals:message_inbox' %}">Messages</a></li>
+                        <li><a href="{% url 'rentals:wishlist' %}">Saved places</a></li>
+                        <li><a href="{% url 'rentals:property_create' %}">List your place</a></li>
+                        {% else %}
+                        <li><a href="{% url 'users:login' %}">Log in</a></li>
+                        <li><a href="{% url 'users:signup' %}">Sign up</a></li>
+                        <li><a href="{% url 'rentals:property_create' %}">List your place</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-legal">
+                <div class="row align-items-center gy-2">
+                    <div class="col-md-5">
+                        <p class="text-light mb-0 small">&copy; {% now "Y" %} Qasha. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-7 text-md-end">
+                        <a href="{% url 'core:privacy' %}">Privacy</a>
+                        <a href="{% url 'core:terms' %}">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% include 'includes/help_modal.html' %}
+
+    <div class="modal fade" id="qashaProfilePhotoModal" tabindex="-1" aria-labelledby="qashaProfilePhotoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h2 class="modal-title h6 mb-0" id="qashaProfilePhotoModalLabel">Profile photo</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 text-center">
+                    <div id="qashaProfilePhotoModalPhoto">
+                        <img src="" alt="" class="img-fluid rounded" id="qashaProfilePhotoModalImg">
+                    </div>
+                    <div id="qashaProfilePhotoModalFallback" class="d-none">
+                        <div class="rounded-circle bg-primary text-white mx-auto" id="qashaProfilePhotoModalInitial" aria-hidden="true"></div>
+                        <p class="mt-3 mb-1 fw-semibold" id="qashaProfilePhotoModalName"></p>
+                        <p class="small text-muted mb-0" id="qashaProfilePhotoModalHint"></p>
+                        <a href="{% url 'users:profile' %}#profile-photo" class="btn btn-primary btn-sm mt-3 d-none" id="qashaProfilePhotoModalUpload">Add profile photo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Help panel: contact form + open via ?help=1
+        (function() {
+            const helpForm = document.getElementById('help-contact-form');
+            if (helpForm) {
+                helpForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const alertEl = document.getElementById('help-form-alert');
+                    const fd = new FormData(helpForm);
+                    const payload = {
+                        message: fd.get('message'),
+                        topic: fd.get('topic'),
+                        email: fd.get('email') || ''
+                    };
+                    fetch('{% url "core:contact_form_submit" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': fd.get('csrfmiddlewaretoken')
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (!alertEl) return;
+                        alertEl.classList.remove('d-none', 'text-danger', 'text-success');
+                        alertEl.classList.add(data.success ? 'text-success' : 'text-danger');
+                        alertEl.textContent = data.message;
+                        if (data.success) {
+                            helpForm.reset();
+                        }
+                    })
+                    .catch(function() {
+                        if (alertEl) {
+                            alertEl.classList.remove('d-none', 'text-success');
+                            alertEl.classList.add('text-danger');
+                            alertEl.textContent = 'Something went wrong. Try again.';
+                        }
+                    });
+                });
+            }
+            const modalEl = document.getElementById('helpModal');
+            if (modalEl && new URLSearchParams(window.location.search).get('help') === '1') {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                if (window.history.replaceState) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('help');
+                    window.history.replaceState({}, '', url);
+                }
+            }
+        })();
+        document.body.addEventListener('click', function(e) {
+            var photoTrigger = e.target.closest('[data-qasha-profile-photo]');
+            var fallbackTrigger = e.target.closest('[data-qasha-profile-fallback]');
+            if (!photoTrigger && !fallbackTrigger) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var modalEl = document.getElementById('qashaProfilePhotoModal');
+            var photoWrap = document.getElementById('qashaProfilePhotoModalPhoto');
+            var fallbackWrap = document.getElementById('qashaProfilePhotoModalFallback');
+            var modalImg = document.getElementById('qashaProfilePhotoModalImg');
+            var modalInitial = document.getElementById('qashaProfilePhotoModalInitial');
+            var modalName = document.getElementById('qashaProfilePhotoModalName');
+            var modalHint = document.getElementById('qashaProfilePhotoModalHint');
+            var modalUpload = document.getElementById('qashaProfilePhotoModalUpload');
+            if (!modalEl || !photoWrap || !fallbackWrap) return;
+
+            if (photoTrigger) {
+                var src = photoTrigger.getAttribute('data-qasha-profile-photo');
+                if (!src || !modalImg) return;
+                photoWrap.classList.remove('d-none');
+                fallbackWrap.classList.add('d-none');
+                modalImg.src = src;
+                modalImg.alt = photoTrigger.getAttribute('data-qasha-profile-name') || 'Profile photo';
+            } else {
+                var initial = fallbackTrigger.getAttribute('data-qasha-profile-fallback') || '?';
+                var name = fallbackTrigger.getAttribute('data-qasha-profile-name') || 'User';
+                var uploadUrl = fallbackTrigger.getAttribute('data-qasha-profile-upload-url');
+                photoWrap.classList.add('d-none');
+                fallbackWrap.classList.remove('d-none');
+                if (modalInitial) modalInitial.textContent = initial;
+                if (modalName) modalName.textContent = name;
+                if (modalHint) {
+                    modalHint.textContent = uploadUrl
+                        ? 'You have not added a profile photo yet.'
+                        : 'This user has not added a profile photo yet.';
+                }
+                if (modalUpload) {
+                    if (uploadUrl) {
+                        modalUpload.href = uploadUrl;
+                        modalUpload.classList.remove('d-none');
+                    } else {
+                        modalUpload.classList.add('d-none');
+                    }
+                }
+            }
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        });
+    </script>
+
+    {% if google_maps_api_key %}
+    <script src="{% static 'js/qasha-places.js' %}"></script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=qashaPlacesReady"
+        async defer></script>
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

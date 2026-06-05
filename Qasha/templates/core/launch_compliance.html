@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Launch checklist · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 800px;">
+    <h1 class="h3 text-primary mb-2">Before you launch in South Africa</h1>
+    <p class="text-muted mb-4">
+        This page is a <strong>practical checklist</strong>, not legal advice. Have a South African attorney
+        review your setup before you take real money or market publicly.
+    </p>
+
+    <div class="alert alert-warning small">
+        <strong>Copyright & third-party assets:</strong> This site uses
+        <a href="https://getbootstrap.com" target="_blank" rel="noopener">Bootstrap</a> (MIT licence),
+        <a href="https://fontawesome.com" target="_blank" rel="noopener">Font Awesome</a> (free licence — keep attribution),
+        and <a href="https://fonts.google.com" target="_blank" rel="noopener">Google Fonts</a> (see their licence).
+        Do not copy text, photos, or logos from other rental sites. Use your own listing photos and original copy.
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h2 class="h6 text-primary">Business & registrations</h2>
+            <ul class="small mb-0">
+                <li>Register a company or sole proprietorship with <strong>CIPC</strong> if trading formally.</li>
+                <li>Register for <strong>tax</strong> (SARS) and understand VAT if turnover requires it.</li>
+                <li>Open a business bank account for platform income and payouts.</li>
+                <li>Clarify whether you need an <strong>FSP licence</strong> or payment intermediary rules if you hold client money (get legal advice).</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h2 class="h6 text-primary">POPIA (personal information)</h2>
+            <ul class="small mb-0">
+                <li>Publish a clear <a href="{% url 'core:privacy' %}">Privacy Policy</a> (what you collect, why, rights, contact).</li>
+                <li>Appoint an <strong>Information Officer</strong> and register with the Information Regulator if required.</li>
+                <li>Get consent for marketing; honour opt-outs; report data breaches as POPIA requires.</li>
+                <li>Use contracts with any hosting/email providers that process user data.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h2 class="h6 text-primary">Consumer law (CPA) & marketing</h2>
+            <ul class="small mb-0">
+                <li>Fair, clear listing descriptions — no misleading rent or fees.</li>
+                <li>Direct marketing (email/SMS/WhatsApp campaigns) must follow <strong>CPA</strong> and POPIA; registry/opt-out rules are tightening (check current NCC guidance).</li>
+                <li>Terms must explain you are a <strong>platform</strong>, not the rental contract party.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h2 class="h6 text-primary">Rentals & property sector</h2>
+            <ul class="small mb-0">
+                <li>If you or users act as <strong>property practitioners</strong>, PPCC/EAAB rules may apply — a pure tech marketplace model is different; confirm with a lawyer.</li>
+                <li>Hosts remain responsible for lawful rentals, deposits, evictions, and municipal bylaws.</li>
+                <li>Consider fair-housing / non-discrimination commitments in your terms.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h2 class="h6 text-primary">Payments (before going live)</h2>
+            <ul class="small mb-0">
+                <li>Replace demo card flows with a licensed gateway (e.g. PayFast, Peach, Stripe where available).</li>
+                <li>PCI-DSS compliant handling — never store raw CVV on your servers.</li>
+                <li>Clear refund/chargeback policy in Terms.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h2 class="h6 text-primary">What Qasha already has in the app</h2>
+            <ul class="small mb-0">
+                <li>Single user registration (no separate tenant/owner signup).</li>
+                <li>Terms & Privacy pages (drafts — need lawyer review).</li>
+                <li>Booking notifications to tenants via <strong>Messages</strong> when hosts accept/decline.</li>
+                <li>In-app messaging; POPIA-oriented signup consent checkbox.</li>
+            </ul>
+        </div>
+    </div>
+
+    <p class="small text-muted mt-4 mb-0">
+        <a href="{% url 'core:privacy' %}">Privacy Policy</a> ·
+        <a href="{% url 'core:terms' %}">Terms of Service</a>
+    </p>
+</div>
+{% endblock %}

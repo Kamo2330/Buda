@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with {{ other_user.get_full_name|default:other_user.username }} · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 720px;">
+    <nav class="mb-3">
+        <a href="{% url 'rentals:message_inbox' %}" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i>All messages</a>
+    </nav>
+    <div class="d-flex align-items-center gap-3 mb-3">
+        {% include 'includes/user_avatar.html' with profile_user=other_user size=56 %}
+        <h1 class="h4 text-primary mb-0">Chat with {{ other_user.get_full_name|default:other_user.username }}</h1>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body bg-light" style="min-height: 200px; max-height: 55vh; overflow-y: auto;">
+            {% for m in thread_messages %}
+            <div class="mb-3 d-flex gap-2 {% if m.sender_id == user.id %}flex-row-reverse{% endif %}">
+                <div class="flex-shrink-0 pt-1">
+                    {% if m.sender_id == user.id %}
+                    {% include 'includes/user_avatar.html' with profile_user=user size=36 %}
+                    {% else %}
+                    {% include 'includes/user_avatar.html' with profile_user=other_user size=36 %}
+                    {% endif %}
+                </div>
+                <div class="{% if m.sender_id == user.id %}text-end{% endif %} flex-grow-1 min-w-0">
+                <div class="d-inline-block text-start p-3 rounded-3 {% if m.sender_id == user.id %}bg-primary text-white{% else %}bg-white border{% endif %}" style="max-width: 92%;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                    <div class="small {% if m.sender_id == user.id %}opacity-75{% else %}text-muted{% endif %}">{{ m.created_at|date:"j M Y, H:i" }}</div>
+                    {% if m.sender_id == user.id %}
+                    <div class="small msg-status {% if m.sender_id == user.id %}opacity-90{% endif %}">
+                        {% if m.read_at %}
+                        <span title="Seen {{ m.read_at|date:'j M, H:i' }}"><i class="fas fa-check-double text-info"></i> Seen</span>
+                        {% elif m.delivered_at %}
+                        <span title="Delivered"><i class="fas fa-check-double"></i> Delivered</span>
+                        {% else %}
+                        <span title="Sent"><i class="fas fa-check"></i> Sent</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                    <div class="mb-0" style="white-space: pre-wrap;">{{ m.message }}</div>
+                    {% if m.property %}
+                    <div class="small mt-2 {% if m.sender_id == user.id %}opacity-75{% else %}text-muted{% endif %}">
+                        <i class="fas fa-home me-1"></i><a href="{% url 'rentals:property_detail' m.property.pk %}" class="{% if m.sender_id == user.id %}text-white text-decoration-underline{% else %}text-reset{% endif %}">About: {{ m.property.title }}</a>
+                    </div>
+                    {% endif %}
+                </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted text-center mb-0">No messages in this chat yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="h6 text-primary mb-3">Write a message</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label" for="{{ form.message.id_for_label }}">Your message</label>
+                    {{ form.message }}
+                    {{ form.message.errors }}
+                </div>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

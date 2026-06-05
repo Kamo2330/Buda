@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Help · Qasha{% endblock %}
+{% block content %}
+<div class="container py-5 text-center" style="max-width: 420px;">
+    <p class="text-muted">Opening help…</p>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const el = document.getElementById('helpModal');
+    if (el) bootstrap.Modal.getOrCreateInstance(el).show();
+});
+</script>
+{% endblock %}

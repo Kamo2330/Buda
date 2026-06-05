@@ -1,0 +1,55 @@
+{% load qasha_extras %}
+{% if video_file %}
+<div class="listing-video-wrap {{ wrapper_class|default:'' }}">
+    {% if video_title %}
+    <p class="small fw-semibold mb-2">{{ video_title }}</p>
+    {% endif %}
+    {% if video_file|media_exists %}
+    <video class="listing-video-player w-100"
+           controls
+           playsinline
+           webkit-playsinline
+           preload="metadata"
+           src="{{ video_file.url }}"
+           {% if poster_image and poster_image.image and poster_image.image|media_exists %}poster="{{ poster_image.image.url }}"{% elif poster_url %}poster="{{ poster_url }}"{% endif %}
+           style="max-height: {{ max_height|default:'420px' }}; border-radius: {{ border_radius|default:'0.75rem' }};">
+        <source src="{{ video_file.url }}" type="{{ video_file.name|video_mime_type }}">
+    </video>
+    <p class="listing-video-error d-none small text-danger mt-2 mb-0">
+        This video could not play in the browser (wrong codec or format). Re-export as MP4 (H.264 + AAC) under 3 minutes, then upload again.
+    </p>
+    {% else %}
+    <div class="alert alert-warning small mb-0">
+        <i class="fas fa-exclamation-triangle me-1"></i>
+        The video file for this listing is missing on the server (often after moving PCs without copying the <code>media/</code> folder).
+        {% if show_manage_hint %}
+        Open <strong>Manage → your listing → Photos and video</strong> and upload the tour again as <strong>MP4 (H.264)</strong>.
+        {% else %}
+        Ask the host to upload the tour again as <strong>MP4 (H.264)</strong>.
+        {% endif %}
+    </div>
+    {% endif %}
+    {% if show_open_link and property_pk %}
+    <a href="{% url 'rentals:property_detail' property_pk %}" class="btn btn-sm btn-outline-primary mt-2" target="_blank" rel="noopener">
+        <i class="fas fa-external-link-alt me-1"></i>Open on listing page
+    </a>
+    {% endif %}
+</div>
+{% if video_file|media_exists %}
+<script>
+(function() {
+    document.querySelectorAll('.listing-video-player').forEach(function(video) {
+        if (video.dataset.errorBound) return;
+        video.dataset.errorBound = '1';
+        video.addEventListener('error', function() {
+            var wrap = video.closest('.listing-video-wrap');
+            if (wrap) {
+                var err = wrap.querySelector('.listing-video-error');
+                if (err) err.classList.remove('d-none');
+            }
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endif %}

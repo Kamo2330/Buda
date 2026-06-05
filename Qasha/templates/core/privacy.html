@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+    <h1 class="h3 text-primary mb-3">Privacy Policy</h1>
+    <p class="text-muted small">Last updated: {% now "j F Y" %}</p>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4 small">
+            <h2 class="h6">1. Who we are</h2>
+            <p>Qasha (“we”, “us”) operates an online platform that helps people find accommodation and connect with listing hosts. We process personal information under the Protection of Personal Information Act, 2013 (POPIA).</p>
+
+            <h2 class="h6 mt-4">2. What we collect</h2>
+            <ul>
+                <li>Account details: name, username, email, phone (optional), password (stored securely hashed).</li>
+                <li>Listing and booking data: addresses, dates, messages, and payment references (we do not store full card numbers).</li>
+                <li>Usage and support messages sent through Help or contact forms.</li>
+            </ul>
+
+            <h2 class="h6 mt-4">3. Why we use it</h2>
+            <ul>
+                <li>To run accounts, listings, bookings, and in-app messaging.</li>
+                <li>To authorize and capture payments when hosts accept bookings (where enabled).</li>
+                <li>To improve safety, support users, and comply with law.</li>
+            </ul>
+
+            <h2 class="h6 mt-4">4. Your rights (POPIA)</h2>
+            <p>You may request access, correction, or deletion of your personal information, and object to certain processing. Contact us via Help on the site. You may complain to the Information Regulator (South Africa).</p>
+
+            <h2 class="h6 mt-4">5. Security & retention</h2>
+            <p>We use reasonable technical measures. No system is perfectly secure. We keep data only as long as needed for the service and legal obligations.</p>
+
+            <h2 class="h6 mt-4">6. Sharing</h2>
+            <p>We share information between users where needed for bookings and messages (e.g. hosts see applicant details). We may share with service providers (hosting, email) under contracts. We do not sell personal information.</p>
+
+            <p class="mb-0 mt-4"><a href="{% url 'core:terms' %}">Terms of Service</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

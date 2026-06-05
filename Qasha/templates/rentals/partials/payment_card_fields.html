@@ -1,0 +1,39 @@
+{% if payment_form.non_field_errors %}
+<div class="alert alert-danger small">
+    {% for error in payment_form.non_field_errors %}
+    <div>{{ error }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="mb-3">
+    <label class="form-label" for="{{ payment_form.cardholder_name.id_for_label }}">{{ payment_form.cardholder_name.label }}</label>
+    {{ payment_form.cardholder_name }}
+    {% if payment_form.cardholder_name.errors %}
+    <div class="invalid-feedback d-block">{{ payment_form.cardholder_name.errors.0 }}</div>
+    {% endif %}
+</div>
+<div class="mb-3">
+    <label class="form-label" for="{{ payment_form.card_number.id_for_label }}">{{ payment_form.card_number.label }}</label>
+    {{ payment_form.card_number }}
+    {% if payment_form.card_number.errors %}
+    <div class="invalid-feedback d-block">{{ payment_form.card_number.errors.0 }}</div>
+    {% endif %}
+</div>
+<div class="row g-2 mb-2">
+    <div class="col-6">
+        <label class="form-label" for="{{ payment_form.card_expiry.id_for_label }}">{{ payment_form.card_expiry.label }}</label>
+        {{ payment_form.card_expiry }}
+        {% if payment_form.card_expiry.errors %}
+        <div class="invalid-feedback d-block">{{ payment_form.card_expiry.errors.0 }}</div>
+        {% endif %}
+    </div>
+    <div class="col-6">
+        <label class="form-label" for="{{ payment_form.card_cvv.id_for_label }}">{{ payment_form.card_cvv.label }}</label>
+        {{ payment_form.card_cvv }}
+        {% if payment_form.card_cvv.errors %}
+        <div class="invalid-feedback d-block">{{ payment_form.card_cvv.errors.0 }}</div>
+        {% endif %}
+    </div>
+</div>
+<p class="small text-muted mb-0">Expiry as MM/YY (e.g. 12/28). Spaces in the card number are fine.</p>

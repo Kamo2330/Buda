@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Private feedback · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 560px;">
+    <nav class="mb-3">
+        <a href="{% url 'rentals:property_detail' property.pk %}" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i>Back to place</a>
+    </nav>
+    <h1 class="h4 text-primary mb-2">Private feedback</h1>
+    <p class="text-muted mb-4">
+        About <strong>{{ property.title }}</strong>. Only the owner and Qasha see this — it is not shown publicly.
+    </p>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label" for="{{ form.rating.id_for_label }}">Rating</label>
+                    {{ form.rating }}
+                    {{ form.rating.errors }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="{{ form.comment.id_for_label }}">Your feedback</label>
+                    {{ form.comment }}
+                    {{ form.comment.errors }}
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    {% if existing_feedback %}Update feedback{% else %}Send feedback{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

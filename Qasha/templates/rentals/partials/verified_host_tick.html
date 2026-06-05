@@ -1,0 +1,21 @@
+{% if host.has_host_verification_badge %}
+    {% if show_label %}
+    <span class="badge bg-success">
+        <i class="fas fa-check-circle me-1"></i>{{ host.host_verification_badge_label }}
+    </span>
+    {% else %}
+    <i class="fas fa-check-circle text-success verified-host-tick"
+       title="{{ host.host_verification_badge_label }}"
+       aria-label="{{ host.host_verification_badge_label }}"></i>
+    {% endif %}
+{% elif host.is_verified %}
+    {% if show_label %}
+    <span class="badge bg-success">
+        <i class="fas fa-check-circle me-1"></i>Verified Host
+    </span>
+    {% else %}
+    <i class="fas fa-check-circle text-success verified-host-tick"
+       title="Verified Host"
+       aria-label="Verified Host"></i>
+    {% endif %}
+{% endif %}

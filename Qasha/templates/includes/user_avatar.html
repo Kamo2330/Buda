@@ -1,0 +1,36 @@
+{% load user_extras %}
+{% with avatar_user=profile_user|default:user %}
+{% with px=size|default:48 %}
+{% with display_name=avatar_user.get_full_name|default:avatar_user.username %}
+{% with initial=avatar_user.first_name.0|default:avatar_user.username.0|upper %}
+{% if avatar_user|user_has_profile_photo %}
+<button type="button"
+        class="qasha-avatar-btn p-0 border-0 bg-transparent rounded-circle flex-shrink-0"
+        data-qasha-profile-photo="{{ avatar_user|user_profile_photo_url }}"
+        data-qasha-profile-name="{{ display_name }}"
+        aria-label="View photo of {{ display_name }}">
+    <img src="{{ avatar_user|user_profile_photo_url }}"
+         class="rounded-circle object-fit-cover d-block"
+         width="{{ px }}"
+         height="{{ px }}"
+         alt="">
+</button>
+{% else %}
+<button type="button"
+        class="qasha-avatar-btn qasha-avatar-fallback-btn p-0 border-0 bg-transparent rounded-circle flex-shrink-0"
+        data-qasha-profile-fallback="{{ initial }}"
+        data-qasha-profile-name="{{ display_name }}"
+        {% if request.user.is_authenticated and request.user.pk == avatar_user.pk %}
+        data-qasha-profile-upload-url="{% url 'users:profile' %}#profile-photo"
+        {% endif %}
+        aria-label="View profile of {{ display_name }}">
+    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center qasha-avatar-fallback-inner"
+         style="--qasha-avatar-px: {{ px }}px; width: {{ px }}px; height: {{ px }}px;">
+        {{ initial }}
+    </div>
+</button>
+{% endif %}
+{% endwith %}
+{% endwith %}
+{% endwith %}
+{% endwith %}

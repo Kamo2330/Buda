@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+
+
+{% block title %}Your profile · Qasha{% endblock %}
+
+
+
+{% block extra_css %}
+
+<style>
+
+.profile-page { max-width: 520px; margin: 0 auto; }
+
+.profile-page h1 { font-size: 1.35rem; font-weight: 700; color: #1e40af; }
+
+.profile-page .qasha-avatar-btn img,
+.profile-page .qasha-avatar-fallback-inner {
+    width: 88px;
+    height: 88px;
+    --qasha-avatar-px: 88px;
+    border: 3px solid #dbeafe;
+    box-shadow: none;
+}
+
+</style>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="container py-4 profile-page">
+
+    <a href="{% url 'rentals:my_hub' %}" class="small text-muted text-decoration-none">&larr; Manage</a>
+
+    <h1 class="mt-2 mb-3">Your profile</h1>
+
+
+
+    <div class="card shadow-sm">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center gap-3 mb-4">
+
+                {% include 'includes/user_avatar.html' with profile_user=profile_user size=88 %}
+
+                <div>
+
+                    <p class="mb-0 fw-semibold">{{ profile_user.get_full_name|default:profile_user.username }}</p>
+
+                    <p class="small text-muted mb-0">@{{ profile_user.username }}</p>
+
+                    {% if profile_user.has_host_verification_badge %}
+
+                    <span class="badge bg-success mt-1">
+
+                        <i class="fas fa-check-circle me-1"></i>{{ profile_user.host_verification_badge_label }}
+
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+
+            <form method="post" enctype="multipart/form-data" novalidate>
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+
+                <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+
+                {% endif %}
+
+
+
+                <div class="row g-3 mb-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label" for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+
+                        {{ form.first_name }}
+
+                        {{ form.first_name.errors }}
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label" for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+
+                        {{ form.last_name }}
+
+                        {{ form.last_name.errors }}
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="mb-3">
+
+                    <label class="form-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+
+                    {{ form.email }}
+
+                    {{ form.email.errors }}
+
+                </div>
+
+
+
+                <div class="mb-3">
+
+                    <label class="form-label" for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
+
+                    {{ form.phone_number }}
+
+                    {{ form.phone_number.errors }}
+
+                </div>
+
+
+
+                <div class="mb-3" id="profile-photo">
+
+                    <label class="form-label" for="{{ form.profile_picture.id_for_label }}">{{ form.profile_picture.label }}</label>
+
+                    {{ form.profile_picture }}
+
+                    <div class="form-text">Tap your photo above to preview it. JPG or PNG works best.</div>
+
+                    {{ form.profile_picture.errors }}
+
+                </div>
+
+
+
+                <div class="mb-3" id="home-address">
+
+                    {{ form.home_address }}
+
+                    <div class="form-text">Type your suburb and city, e.g. Sandton, Johannesburg{% if places_autocomplete_enabled %} — or pick from suggestions{% endif %}.</div>
+
+                    {{ form.home_address.errors }}
+
+                    {{ form.home_suburb }}
+
+                    {{ form.home_city }}
+
+                    {{ form.home_latitude }}
+
+                    {{ form.home_longitude }}
+
+                </div>
+
+
+
+                <div class="mb-4">
+
+                    <label class="form-label" for="{{ form.bio.id_for_label }}">{{ form.bio.label }}</label>
+
+                    {{ form.bio }}
+
+                    {{ form.bio.errors }}
+
+                </div>
+
+
+
+                <div class="mb-3">
+
+                    <label class="form-label" for="{{ form.search_radius_km.id_for_label }}">{{ form.search_radius_km.label }}</label>
+
+                    {{ form.search_radius_km }}
+
+                    <div class="form-text">Browse: 2–200 km from your home, or all of South Africa (nearest first).</div>
+
+                </div>
+
+                <div class="form-check mb-4">
+
+                    {{ form.widen_search_if_empty }}
+
+                    <label class="form-check-label" for="{{ form.widen_search_if_empty.id_for_label }}">
+
+                        {{ form.widen_search_if_empty.label }}
+
+                    </label>
+
+                    <div class="form-text">{{ form.widen_search_if_empty.help_text }}</div>
+
+                </div>
+
+
+
+                <button type="submit" class="btn btn-primary w-100 py-2">Save profile</button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+

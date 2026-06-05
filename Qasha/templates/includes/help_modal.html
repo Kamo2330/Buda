@@ -1,0 +1,105 @@
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content help-modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h2 class="modal-title h5 text-primary mb-1" id="helpModalLabel">Help</h2>
+                    <p class="small text-muted mb-0">Quick answers or send us a note — we usually reply within a day.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <p class="small fw-semibold text-uppercase text-muted mb-2" style="letter-spacing:.04em;">FAQ</p>
+                <div class="accordion accordion-flush help-faq" id="helpFaq">
+                    <div class="accordion-item border-0 border-bottom">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 shadow-none bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#helpFaq1">
+                                How do I list a place?
+                            </button>
+                        </h3>
+                        <div id="helpFaq1" class="accordion-collapse collapse" data-bs-parent="#helpFaq">
+                            <div class="accordion-body px-0 pt-0 pb-3 small text-muted">
+                                Tap <strong>List your place</strong> in the menu, add photos and details, then publish.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 border-bottom">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 shadow-none bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#helpFaq2">
+                                How do I apply to rent?
+                            </button>
+                        </h3>
+                        <div id="helpFaq2" class="accordion-collapse collapse" data-bs-parent="#helpFaq">
+                            <div class="accordion-body px-0 pt-0 pb-3 small text-muted">
+                                Tap <strong>Request booking</strong>. Your card is <strong>authorized</strong> (hold, not charged). The owner sees a new request and can <strong>Accept</strong> (payment captured, booking confirmed) or <strong>Decline</strong> (authorization released — no refund needed).
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 border-bottom">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 shadow-none bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#helpFaq3">
+                                How do I talk to an owner?
+                            </button>
+                        </h3>
+                        <div id="helpFaq3" class="accordion-collapse collapse" data-bs-parent="#helpFaq">
+                            <div class="accordion-body px-0 pt-0 pb-3 small text-muted">
+                                Use <strong>Message owner</strong> on a listing or the <strong>Messages</strong> tab. Keep chat on Qasha first.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 border-bottom">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 shadow-none bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#helpFaq4">
+                                What is Premium?
+                            </button>
+                        </h3>
+                        <div id="helpFaq4" class="accordion-collapse collapse" data-bs-parent="#helpFaq">
+                            <div class="accordion-body px-0 pt-0 pb-3 small text-muted">
+                                Free: 10 photos. Premium: 25 photos + 1 video (3 min). Pay on <strong>Manage</strong> → <strong>Your account</strong>.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button collapsed py-2 px-0 shadow-none bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#helpFaq5">
+                                Something wrong with a listing?
+                            </button>
+                        </h3>
+                        <div id="helpFaq5" class="accordion-collapse collapse" data-bs-parent="#helpFaq">
+                            <div class="accordion-body px-0 pt-0 pb-3 small text-muted">
+                                Use <strong>Help → Report a problem</strong> below. To talk to an owner, use <strong>Messages</strong> on the listing.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <p class="small fw-semibold text-uppercase text-muted mb-2" style="letter-spacing:.04em;">Ask us</p>
+                <form id="help-contact-form" class="help-contact-form">
+                    {% csrf_token %}
+                    {% if not user.is_authenticated %}
+                    <div class="mb-2">
+                        <input type="email" class="form-control form-control-sm" name="email" placeholder="Your email" required>
+                    </div>
+                    {% endif %}
+                    <div class="mb-2">
+                        <select class="form-select form-select-sm" name="topic" aria-label="Topic">
+                            <option value="General question">General question</option>
+                            <option value="Listing help">Listing help</option>
+                            <option value="Application or payment">Application or payment</option>
+                            <option value="Report a problem">Report a problem</option>
+                            <option value="Emergency / urgent">Emergency / urgent</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control form-control-sm" name="message" rows="3" placeholder="What do you need?" required></textarea>
+                    </div>
+                    <div id="help-form-alert" class="d-none small mb-2"></div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

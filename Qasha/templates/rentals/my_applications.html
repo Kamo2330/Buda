@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load qasha_extras %}
+
+{% block title %}My booking requests · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 720px;">
+    <nav class="mb-3">
+        <a href="{% url 'rentals:property_list' %}" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i>Home</a>
+    </nav>
+    <nav class="mb-3"><a href="{% url 'rentals:my_hub' %}" class="text-decoration-none"><i class="fas fa-arrow-left me-1"></i>Manage</a></nav>
+    <h1 class="h3 text-primary mb-4">My booking requests</h1>
+
+    {% for app in applications %}
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <h2 class="h6 mb-0"><a href="{% url 'rentals:property_detail' app.property.pk %}">{{ app.property.title }}</a></h2>
+                <span class="badge {% if app.is_paid_on_qasha %}bg-success{% elif app.status == 'accepted' %}bg-primary{% elif app.status == 'pending' %}bg-warning text-dark{% elif app.status == 'declined' %}bg-secondary{% else %}bg-light text-dark{% endif %}">
+                    {% if app.is_paid_on_qasha %}
+                        Paid on Qasha — confirmed
+                    {% else %}
+                        {{ app.get_status_display }}
+                    {% endif %}
+                </span>
+            </div>
+            <p class="small text-muted mb-2">
+                {% if app.check_out_date %}
+                    {{ app.check_in_date|date:"j M Y" }} — {{ app.check_out_date|date:"j M Y" }}
+                {% else %}
+                    Move-in: {{ app.check_in_date|date:"j M Y" }}
+                {% endif %}
+            </p>
+
+            {% if app.is_paid_on_qasha %}
+            <p class="small text-success mb-2">
+                <i class="fas fa-check-circle me-1"></i>
+                <strong>{{ app.total_amount|zar:2 }}</strong> captured on Qasha
+                {% if app.paid_at %} · {{ app.paid_at|date:"j M Y, H:i" }}{% endif %}
+                {% if app.payment_card_last4 %} · card •••• {{ app.payment_card_last4 }}{% endif %}
+            </p>
+            {% elif app.uses_qasha_payment and app.status == 'pending' %}
+            {% if app.is_payment_authorized %}
+            <p class="small text-primary mb-2">
+                <i class="fas fa-lock me-1"></i>{{ app.total_amount|zar:2 }} authorized on card •••• {{ app.payment_card_last4 }}.
+                Not charged yet — captured when the owner accepts.
+            </p>
+            {% else %}
+            <p class="small text-warning mb-2">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Awaiting card authorization. Cancel and <a href="{% url 'rentals:create_booking' app.property.pk %}">request booking again</a> to add payment.
+            </p>
+            {% endif %}
+            {% elif app.uses_qasha_payment and app.status == 'accepted' %}
+            <p class="small text-warning mb-2">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Owner accepted, but payment was not captured on Qasha (no card was saved on this request).
+                Message the owner or cancel and submit a new request with your card.
+            </p>
+            {% elif app.status == 'declined' and app.payment_auth_status == 'released' %}
+            <p class="small text-muted mb-2">
+                <i class="fas fa-unlock me-1"></i>Authorization released. You were not charged.
+            </p>
+            {% elif app.uses_qasha_payment and app.total_amount %}
+            <p class="small mb-2">Securing amount: <strong>{{ app.total_amount|zar:2 }}</strong></p>
+            {% elif app.status == 'accepted' and not app.uses_qasha_payment %}
+            <p class="small text-primary mb-2">
+                Owner accepted. Arrange payment with them directly (this listing does not use Qasha payment).
+            </p>
+            {% endif %}
+
+            {% if app.host_note %}<p class="small text-muted mb-2">Owner: {{ app.host_note }}</p>{% endif %}
+            <div class="d-flex flex-wrap gap-2">
+                {% if app.status == 'pending' or app.status == 'accepted' and not app.is_paid_on_qasha %}
+                <form method="post" action="{% url 'rentals:booking_cancel' app.pk %}" class="d-inline" onsubmit="return confirm('Cancel this booking request?{% if app.is_payment_authorized %} Your card authorization will be released.{% endif %}');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Cancel request</button>
+                </form>
+                {% endif %}
+                <a href="{% url 'rentals:send_message' app.property.pk %}" class="btn btn-sm btn-outline-primary">Message owner</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card text-center py-5">
+        <p class="text-muted mb-3">You have not requested a booking yet.</p>
+        <a href="{% url 'rentals:property_list' %}" class="btn btn-primary">Browse places</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

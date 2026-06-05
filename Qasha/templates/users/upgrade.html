@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Account plans · Qasha{% endblock %}
+
+{% block content %}
+<section class="section-padding">
+    <div class="container" style="max-width: 720px;">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <h1 class="h3 text-primary mb-0">Free and Premium accounts</h1>
+            <a href="{% url 'rentals:my_hub' %}" class="btn btn-outline-secondary btn-sm">Manage</a>
+        </div>
+        <p class="text-muted small mb-4">
+            Premium adds more photos and video to your listings. Pay securely on Qasha below.
+            For featured listings and host verification, use
+            <a href="{% url 'rentals:promotions' %}">Promote &amp; verify</a>.
+        </p>
+
+        {% if user.is_premium_account %}
+        <div class="alert alert-success">
+            <i class="fas fa-star me-2"></i>
+            Your account is <strong>Premium</strong>.
+            {% if user.premium_since %}Since {{ user.premium_since|date:"j M Y" }}.{% endif %}
+        </div>
+        {% endif %}
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card h-100 border">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3">Free</h2>
+                        <ul class="mb-0 ps-3">
+                            <li>Up to {{ free_max_photos }} photos per listing</li>
+                            <li>No video uploads</li>
+                            <li>Messaging and listings on Qasha</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 border-primary">
+                    <div class="card-body">
+                        <h2 class="h5 mb-3 text-primary">Premium</h2>
+                        <p class="text-primary fw-bold mb-2">R{{ premium_price_zar }} <span class="text-muted fw-normal small">one-time</span></p>
+                        <ul class="mb-0 ps-3">
+                            <li>Up to {{ premium_max_photos }} photos per listing</li>
+                            <li>1 video per listing, up to {{ premium_max_video_minutes }} minutes</li>
+                            <li>Pay on Qasha — instant upgrade</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if not user.is_premium_account %}
+        <div class="card border-primary">
+            <div class="card-body p-4">
+                <h2 class="h6 mb-2"><i class="fas fa-lock me-1"></i>Pay on Qasha</h2>
+                <p class="small text-muted mb-3">
+                    Enter your card details to pay <strong>R{{ premium_price_zar }}</strong> and upgrade to Premium immediately.
+                    (Demo build — no real charge; connect PayFast or your gateway for production.)
+                </p>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="pay_premium">
+
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ payment_form.cardholder_name.id_for_label }}">{{ payment_form.cardholder_name.label }}</label>
+                        {{ payment_form.cardholder_name }}
+                        {% if payment_form.cardholder_name.errors %}<div class="text-danger small">{{ payment_form.cardholder_name.errors }}</div>{% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ payment_form.card_number.id_for_label }}">{{ payment_form.card_number.label }}</label>
+                        {{ payment_form.card_number }}
+                        {% if payment_form.card_number.errors %}<div class="text-danger small">{{ payment_form.card_number.errors }}</div>{% endif %}
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label" for="{{ payment_form.card_expiry.id_for_label }}">{{ payment_form.card_expiry.label }}</label>
+                            {{ payment_form.card_expiry }}
+                            {% if payment_form.card_expiry.errors %}<div class="text-danger small">{{ payment_form.card_expiry.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label" for="{{ payment_form.card_cvv.id_for_label }}">{{ payment_form.card_cvv.label }}</label>
+                            {{ payment_form.card_cvv }}
+                            {% if payment_form.card_cvv.errors %}<div class="text-danger small">{{ payment_form.card_cvv.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% if payment_form.non_field_errors %}
+                    <div class="alert alert-danger small">{{ payment_form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-credit-card me-2"></i>Pay R{{ premium_price_zar }} — upgrade to Premium
+                    </button>
+                </form>
+                <p class="small text-muted mt-3 mb-0 text-center">
+                    Questions? <a href="{% url 'rentals:property_list' %}?help=1">Help</a>.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load qasha_extras %}
+
+{% block title %}Your listed places · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 720px;">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <h1 class="h3 text-primary mb-1">Your listed places</h1>
+            <p class="text-muted mb-0">Edit, hide, or remove places you put on Qasha.</p>
+        </div>
+        <a href="{% url 'rentals:my_hub' %}" class="btn btn-outline-secondary me-2">Manage</a>
+        <a href="{% url 'rentals:property_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>List your place
+        </a>
+        <a href="{% url 'rentals:property_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Add another place
+        </a>
+    </div>
+
+    {% if properties %}
+        {% for property in properties %}
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex gap-3">
+                    {% with img=property.get_display_image %}
+                    {% if img %}
+                        <img src="{{ img.image.url }}" alt="" class="rounded flex-shrink-0" width="72" height="72" style="object-fit: cover;">
+                    {% else %}
+                        <div class="rounded bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width:72px;height:72px;">
+                            <i class="fas fa-home text-muted"></i>
+                        </div>
+                    {% endif %}
+                    {% endwith %}
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <h2 class="h6 mb-1 text-truncate">{{ property.title }}</h2>
+                            {% if property.is_occupied %}
+                                <span class="badge bg-dark">Occupied</span>
+                            {% elif property.is_available %}
+                                <span class="badge bg-success">Available</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Hidden</span>
+                            {% endif %}
+                        </div>
+                        <p class="small text-muted mb-2">{{ property.suburb }}, {{ property.city }}</p>
+                        {% if property.monthly_rent %}
+                            <p class="small mb-2 fw-semibold text-primary">{{ property.monthly_rent|zar }} / month</p>
+                        {% elif property.nightly_rate %}
+                            <p class="small mb-2 fw-semibold text-primary">{{ property.nightly_rate|zar }} / night</p>
+                        {% endif %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% if property.is_featured_active %}
+                                <span class="badge bg-warning text-dark align-self-center">Featured</span>
+                            {% endif %}
+                            <a href="{% url 'rentals:promote_listing' property.pk %}" class="btn btn-sm btn-outline-warning">Promote</a>
+                            <a href="{% url 'rentals:property_update' property.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <a href="{% url 'rentals:property_detail' property.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+                            <form method="post" action="{% url 'rentals:property_toggle_occupied' property.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'rentals:my_listings' %}">
+                                <button type="submit" class="btn btn-sm btn-outline-dark">
+                                    {% if property.is_occupied %}Mark vacant{% else %}Mark occupied{% endif %}
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'rentals:property_toggle_available' property.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{% url 'rentals:my_listings' %}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    {% if property.is_available %}Hide from browse{% else %}Show on browse{% endif %}
+                                </button>
+                            </form>
+                            <a href="{% url 'rentals:host_applications' %}" class="btn btn-sm btn-outline-primary">Requests</a>
+                            <form method="post" action="{% url 'rentals:property_delete' property.pk %}" class="d-inline" onsubmit="return confirm('Remove this listing? This cannot be undone.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card text-center py-5">
+            <div class="card-body">
+                <p class="text-muted mb-3">You have not listed a place yet.</p>
+                <a href="{% url 'rentals:property_create' %}" class="btn btn-primary">List your first place</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

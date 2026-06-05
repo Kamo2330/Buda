@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load qasha_extras %}
+
+{% block title %}Promote & verify · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="h3 text-primary mb-1">Promote & verify</h1>
+            <p class="text-muted small mb-0">
+                Pay on Qasha with your card. Verification activates instantly; featured listings boost search placement.
+            </p>
+        </div>
+        <a href="{% url 'rentals:my_hub' %}" class="btn btn-outline-secondary btn-sm">Manage</a>
+    </div>
+
+    <div class="card mb-4 border-success">
+        <div class="card-body">
+            <h2 class="h6 text-success mb-3"><i class="fas fa-shield-alt me-1"></i>Host verification plans</h2>
+
+            {% if user.has_host_verification_badge %}
+            <div class="alert alert-success small mb-3">
+                <i class="fas fa-check-circle me-1"></i>
+                You are <strong>{{ user.host_verification_badge_label }}</strong>
+                {% if user.host_verification_since %}since {{ user.host_verification_since|date:"j M Y" }}{% endif %}.
+            </div>
+            {% endif %}
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <div class="card h-100 bg-light">
+                        <div class="card-body py-3">
+                            <h3 class="h6 text-muted mb-1">{{ free_plan.label }}</h3>
+                            <p class="fw-bold mb-2">Free</p>
+                            <ul class="small mb-0 ps-3">
+                                {% for perk in free_plan.perks %}
+                                <li>{{ perk }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% for key, tier in verification_tiers.items %}
+                <div class="col-md-4">
+                    <div class="card h-100 border-success">
+                        <div class="card-body py-3">
+                            <h3 class="h6 text-success mb-1">{{ tier.label }}</h3>
+                            <p class="fw-bold mb-2">R{{ tier.price_zar }}</p>
+                            <ul class="small mb-0 ps-3">
+                                {% for perk in tier.perks %}
+                                <li>{{ perk }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if user.has_host_verification_badge %}
+                {% if user.host_verification_tier == 'landlord' %}
+                <a href="{% url 'users:request_verification' %}?tier=agency" class="btn btn-success btn-sm">Upgrade to Agency — R{{ verification_tiers.agency.price_zar }}</a>
+                {% endif %}
+            {% else %}
+            <a href="{% url 'users:request_verification' %}" class="btn btn-success btn-sm">Pay with card — get verified</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mb-4 border-warning">
+        <div class="card-body">
+            <h2 class="h6 text-warning mb-2"><i class="fas fa-star me-1"></i>Featured listing</h2>
+            <p class="small text-muted mb-2">{{ featured_listing_help }}</p>
+            <ul class="small mb-3 ps-3">
+                {% for key, plan in featured_plans.items %}
+                <li><strong>R{{ plan.price_zar }}</strong> — {{ plan.label }}</li>
+                {% endfor %}
+            </ul>
+            {% if properties %}
+            <p class="small fw-semibold mb-2">Your listings</p>
+            <div class="list-group list-group-flush border rounded">
+                {% for property in properties %}
+                <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 py-2">
+                    <div class="min-w-0">
+                        <span class="fw-semibold text-truncate d-block">{{ property.title }}</span>
+                        <span class="small text-muted">
+                            {% if property.is_featured_active %}
+                                Featured until {{ property.featured_until|date:"j M Y" }}
+                            {% else %}
+                                Not featured
+                            {% endif %}
+                        </span>
+                    </div>
+                    <a href="{% url 'rentals:promote_listing' property.pk %}" class="btn btn-sm btn-warning text-dark">
+                        {% if property.is_featured_active %}Extend{% else %}Pay to feature{% endif %}
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="small text-muted mb-2">List a place first, then feature it here.</p>
+            <a href="{% url 'rentals:property_create' %}" class="btn btn-sm btn-primary">List your place</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms of Service · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+    <h1 class="h3 text-primary mb-3">Terms of Service</h1>
+    <p class="text-muted small">Last updated: {% now "j F Y" %}</p>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4 small">
+            <h2 class="h6">1. Platform role</h2>
+            <p>Qasha is a technology platform connecting people who list accommodation and people who wish to book. <strong>We are not the landlord, estate agent, or party to your lease</strong> unless we say so in writing. Hosts and guests are responsible for their own agreements, compliance with rental laws, and tax obligations.</p>
+
+            <h2 class="h6 mt-4">2. One user account</h2>
+            <p>You register once as a Qasha user. You may browse, book, list property, and message others with the same account, subject to these terms and our rules (e.g. you cannot book your own listing).</p>
+
+            <h2 class="h6 mt-4">3. Bookings & payments</h2>
+            <p>Where Pay on Qasha is enabled, you authorize a card hold when you request a booking. If the host accepts, the securing amount may be captured. If the host declines, the authorization is released.</p>
+            <p class="mb-0">Cancellations, refunds, and disputes between hosts and guests are primarily between those parties. Qasha may help with reports but does not guarantee outcomes unless required by law.</p>
+
+            <h2 class="h6 mt-4">4. Your content & listings</h2>
+            <p>You keep ownership of photos, video, and text you upload. You grant Qasha a non-exclusive licence to host, display, and promote that content on the platform. You warrant that you have the right to list the property and to use all media you upload (including any music in video tours).</p>
+            <p class="mb-0">Hosts must provide accurate information. Do not list property you do not own or manage without permission. We may remove content or suspend accounts that breach these terms.</p>
+
+            <h2 class="h6 mt-4">5. Conduct — no defamation or unlawful content</h2>
+            <p>Do not post false or damaging statements about other people, harass others, commit fraud, list illegal property, discriminate unlawfully, or share contact details in listings to bypass the platform. Messages and reviews must follow the same rules.</p>
+            <p class="mb-0"><strong>You are responsible for what you publish.</strong> Qasha is not liable for user statements that defame or harm others, but we may remove content and cooperate with lawful requests.</p>
+
+            <h2 class="h6 mt-4">6. Copyright & takedowns</h2>
+            <p>If you believe content on Qasha infringes your copyright, contact us via Help → Report a problem with details (URL, your work, proof of ownership). We may remove reported content while disputes are resolved.</p>
+
+            <h2 class="h6 mt-4">7. Verification & badges</h2>
+            <p>Optional paid badges (e.g. Verified Landlord) mean we reviewed documents you submitted — <strong>not</strong> a guarantee of safety, property condition, or legal compliance. Listings are published by hosts; Qasha does not inspect every property unless we say so in writing.</p>
+
+            <h2 class="h6 mt-4">8. Indemnity</h2>
+            <p>To the extent permitted by law, you agree to indemnify Qasha against claims arising from your listings, bookings, messages, or breach of these terms (including copyright infringement or defamation you cause).</p>
+
+            <h2 class="h6 mt-4">9. Consumer Protection Act</h2>
+            <p>South African consumer law may apply to some transactions. Marketing must follow CPA and POPIA rules. Nothing here limits rights you cannot contract away under the CPA.</p>
+
+            <h2 class="h6 mt-4">10. Limitation of liability</h2>
+            <p>To the extent permitted by law, Qasha is not liable for disputes between users, property condition, offline payments, or losses from relying on user-generated content. Our liability is limited as allowed under South African law.</p>
+
+            <h2 class="h6 mt-4">11. Changes</h2>
+            <p class="mb-0">We may update these terms. Continued use after notice means you accept the updated terms where the law allows.</p>
+
+            <p class="mb-0 mt-4"><a href="{% url 'core:privacy' %}">Privacy Policy</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

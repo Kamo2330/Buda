@@ -1,0 +1,993 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Change your listing{% else %}Add your place{% endif %} · Qasha{% endblock %}
+
+{% block extra_css %}
+<style>
+    .listing-video-player {
+        width: 100%;
+        min-height: 180px;
+        background: #000;
+        display: block;
+        object-fit: contain;
+    }
+    .listing-top {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: #fff;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .listing-top h1 { font-size: 1.45rem; font-weight: 700; margin-bottom: .5rem; }
+    .listing-top p { margin: 0; font-size: 1.05rem; opacity: .95; }
+    .listing-box {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.35rem 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+    .listing-box h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e40af;
+        margin-bottom: 1rem;
+    }
+    .lease-pill {
+        border-radius: 0.5rem;
+        padding: 1rem;
+        font-weight: 600;
+        font-size: 1.05rem;
+        border: 2px solid #e2e8f0;
+        background: #f8fafc;
+        color: #334155;
+        flex: 1;
+    }
+    .lease-pill.active {
+        border-color: #2563eb;
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    .dropzone {
+        position: relative;
+        min-height: 130px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 0.75rem;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        background: #f8fafc;
+        cursor: pointer;
+    }
+    .dropzone:hover, .dropzone:focus-within {
+        border-color: #2563eb;
+        background: #eff6ff;
+    }
+    .dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .payment-radio ul { list-style: none; padding: 0; margin: 0; }
+    .payment-radio li { margin-bottom: .5rem; }
+    .payment-radio > div { margin-bottom: .5rem; }
+    .payment-radio label {
+        display: flex;
+        align-items: flex-start;
+        gap: .65rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        margin: 0;
+        background: #fff;
+    }
+    .payment-radio label:hover { border-color: #93c5fd; background: #f8fafc; }
+    .payment-radio input { margin-top: .35rem; }
+    .thumb-strip { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+    .thumb-strip img { width: 56px; height: 56px; object-fit: cover; border-radius: .35rem; border: 1px solid #e2e8f0; }
+    .listing-saved-media {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: .75rem;
+        padding: 1rem;
+    }
+    .listing-media-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(108px, 30vw), 1fr));
+        gap: .75rem;
+    }
+    @media (min-width: 768px) {
+        .listing-media-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    }
+    .listing-media-grid .thumb-wrap { width: 100%; }
+    .listing-media-grid img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: .5rem;
+        border: 1px solid #e2e8f0;
+        display: block;
+    }
+    .listing-media-grid .thumb-pick span { font-size: .72rem; margin-top: .25rem; }
+    .existing-photo-item.marked-for-removal { opacity: .45; }
+    .existing-photo-item.marked-for-removal img { outline: 2px dashed #dc3545; outline-offset: 2px; }
+    .listing-media-grid .thumb-remove {
+        top: 4px;
+        right: 4px;
+        width: 26px;
+        height: 26px;
+        font-size: .85rem;
+    }
+    .thumb-pick { cursor: pointer; border: 2px solid transparent; border-radius: .35rem; padding: 2px; }
+    .thumb-pick.selected { border-color: #2563eb; box-shadow: 0 0 0 2px #dbeafe; }
+    .thumb-pick span { display: block; font-size: .65rem; text-align: center; color: #2563eb; margin-top: 2px; }
+    .thumb-wrap { position: relative; display: inline-block; }
+    .thumb-remove {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: none;
+        background: #dc3545;
+        color: #fff;
+        font-size: .75rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        z-index: 2;
+    }
+    .thumb-remove:hover { background: #bb2d3b; }
+    .thumb-existing-remove {
+        font-size: .65rem;
+        color: #dc3545;
+        cursor: pointer;
+        text-align: center;
+        display: block;
+        margin-top: 2px;
+        border: none;
+        background: none;
+        width: 100%;
+        padding: 0;
+    }
+    .amenity-picker {
+        max-height: 280px;
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: .75rem;
+        padding: .75rem 1rem;
+        background: #f8fafc;
+    }
+    .amenity-picker ul { list-style: none; padding: 0; margin: 0; }
+    .amenity-picker li { margin-bottom: .35rem; }
+    .amenity-picker label {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .95rem;
+        cursor: pointer;
+        margin: 0;
+    }
+    .amenity-picker input { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+    .amenity-cat-title {
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #64748b;
+        margin: .75rem 0 .35rem;
+    }
+    .listing-box.has-form-error {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, .15);
+        animation: listing-shake .45s ease;
+    }
+    @keyframes listing-shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+    }
+    .form-error-banner {
+        border-left: 4px solid #dc3545;
+        background: #fff5f5;
+    }
+    .form-error-banner a { font-weight: 600; }
+    .photo-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem; }
+    .dropzone input[type=file] { display: none; }
+    #new-photos-panel .listing-media-grid img { cursor: pointer; }
+    #video-new-preview video {
+        width: 100%;
+        max-height: 280px;
+        border-radius: .75rem;
+        background: #000;
+        display: block;
+        object-fit: contain;
+    }
+    .field-invalid { border-color: #dc3545 !important; box-shadow: 0 0 0 .2rem rgba(220,53,69,.15); }
+    .amenity-cat-title:first-child { margin-top: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 listing-shell">
+    <div class="listing-top">
+        <h1>{% if object %}Change your listing{% else %}Add your place{% endif %}</h1>
+        <p>Put photos and the main facts. People who want to rent will message you here on Qasha.</p>
+        <p class="small mt-2 mb-0 opacity-90">
+            {% if has_full_listing_access %}
+                <i class="fas fa-shield-alt me-1"></i>Verified host — up to {{ photo_limit }} photos, 1 video (up to 3 min).
+            {% else %}
+                Standard — up to {{ photo_limit }} photos.
+                <a href="{% url 'rentals:promotions' %}" class="text-white text-decoration-underline">Get verified</a> for 25 photos + video.
+            {% endif %}
+        </p>
+        <a href="{% url 'rentals:my_hub' %}" class="btn btn-light btn-sm mt-3 me-2">
+            <i class="fas fa-sliders-h me-1"></i>Manage
+        </a>
+        <a href="{% url 'rentals:my_listings' %}" class="btn btn-light btn-sm mt-3">
+            <i class="fas fa-list me-1"></i>Your listings
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="property-listing-form">
+        {% csrf_token %}
+
+        {% if listing_section_errors %}
+        <div class="alert form-error-banner mb-4" id="form-error-banner" role="alert">
+            <h2 class="h6 text-danger mb-2"><i class="fas fa-exclamation-triangle me-1"></i>Please fix these before publishing</h2>
+            <ul class="mb-2 ps-3 small">
+                {% for section in listing_section_errors %}
+                <li class="mb-2">
+                    <a href="#{{ section.id }}" class="text-danger text-decoration-none">{{ section.label }}</a>
+                    <ul class="mb-0 mt-1">
+                        {% for item in section.items %}
+                        <li>{{ item.label }}: {{ item.message }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endfor %}
+            </ul>
+            <p class="small text-muted mb-0">Tap a section name to jump there. Fields with problems are highlighted in red.</p>
+            <p class="small text-warning mb-0 mt-2"><i class="fas fa-exclamation-circle me-1"></i>If you selected new photos or video, add them again — browsers do not keep file uploads after an error.</p>
+        </div>
+        {% elif form.errors %}
+        <div class="alert alert-danger mb-4" id="form-error-banner" role="alert">
+            <strong>Please fix the highlighted fields below.</strong>
+            <p class="small mb-0 mt-2">If you selected new photos or video, add them again — browsers do not keep file uploads after an error.</p>
+        </div>
+        {% endif %}
+
+        {% if form.non_field_errors and not listing_section_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {{ form.lease_type }}
+
+        <div class="listing-box{% if form.video.errors %} has-form-error{% endif %}" id="section-photos">
+            <h2><i class="fas fa-camera me-2"></i>Photos{% if can_upload_video %} and video{% endif %}</h2>
+
+            {% if object %}
+            <div class="listing-saved-media mb-4" id="current-media-block">
+                <h3 class="h6 fw-bold text-primary mb-3"><i class="fas fa-folder-open me-1"></i>Saved on this listing</h3>
+                {% if missing_image_count or video_file_missing %}
+                <div class="alert alert-warning small mb-3">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Some files are missing from this computer’s <code>media/</code> folder (common after moving PCs).
+                    Use the button below, or tap <strong>×</strong> on each photo then <strong>Save</strong> at the bottom.
+                </div>
+                <form method="post" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="purge_missing_media">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-broom me-1"></i>Remove all missing photos{% if video_file_missing %} &amp; video{% endif %}
+                    </button>
+                </form>
+                {% endif %}
+                {% if existing_images %}
+                <p class="small text-muted mb-2">
+                    Tap a photo to choose the home feed image. Tap <strong>×</strong> to mark for removal
+                    (<span id="removal-pending-hint" class="text-primary fw-semibold d-none">then Save listing below</span>).
+                </p>
+                <div class="listing-media-grid mb-3" id="existing-photo-strip">
+                    {% for img in existing_images %}
+                    <div class="thumb-wrap existing-photo-item{% if not img.has_file %} missing-file{% endif %}" data-image-id="{{ img.id }}">
+                        <label class="thumb-pick mb-0 d-block {% if img.is_primary %}selected{% endif %}">
+                            <input type="radio" name="primary_image_id" value="{{ img.id }}" class="d-none primary-existing-radio" {% if img.is_primary %}checked{% endif %}>
+                            {% if img.has_file %}
+                            <img src="{{ img.image.url }}" alt="Listing photo {{ forloop.counter }}" loading="lazy">
+                            {% else %}
+                            <div class="bg-light text-danger small p-3 text-center" style="min-height:100px;">
+                                <i class="fas fa-image d-block mb-1"></i>File missing — remove and upload again
+                            </div>
+                            {% endif %}
+                            <span>{% if img.is_primary %}On feed{% else %}Use on feed{% endif %}</span>
+                        </label>
+                        <button type="button" class="thumb-remove existing-photo-remove" title="Remove photo" aria-label="Remove photo">&times;</button>
+                        <input type="checkbox" name="remove_image_ids" value="{{ img.id }}" class="d-none remove-image-checkbox">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="small text-muted mb-3 mb-md-0">No photos saved yet — add some below.</p>
+                {% endif %}
+
+                {% if object.video %}
+                <div class="mt-3" id="video-current-preview">
+                    <p class="small fw-semibold mb-2">Saved video</p>
+                    {% include 'rentals/includes/listing_video_player.html' with video_file=object.video video_title='' max_height='280px' show_open_link=True show_manage_hint=True property_pk=object.pk poster_image=object.get_display_image %}
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" name="remove_video" value="1" id="remove-video-cb">
+                        <label class="form-check-label text-danger small" for="remove-video-cb">Remove this video</label>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <p class="text-muted mb-3">
+                {% if object %}Add more photos{% else %}Optional when you first publish — add up to {{ photo_limit }} photos now or later from Your listings → Edit{% endif %}
+                (up to {{ photo_limit }} total).
+                {% if can_upload_video %}Verified hosts may add one video up to 3 minutes.{% endif %}
+            </p>
+
+            <div class="photo-actions">
+                <button type="button" class="btn btn-primary" id="btn-choose-photos">
+                    <i class="fas fa-images me-1"></i>{% if object %}Add photos{% else %}Choose photos{% endif %}
+                </button>
+                <button type="button" class="btn btn-outline-primary d-none" id="btn-add-more-photos">
+                    <i class="fas fa-plus me-1"></i>Add more photos
+                </button>
+                <span class="small text-muted align-self-center" id="photo-count-label"></span>
+            </div>
+            <div class="position-relative dropzone mb-3" id="photo-dropzone">
+                <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-2"></i>
+                <p class="mb-1 fw-semibold">Drag photos here or use the buttons above</p>
+                <p class="small text-muted mb-0">Pick as many as you like — you can add more in batches</p>
+                <input type="file" name="property_images" id="id_property_images" accept="image/*" multiple>
+            </div>
+            <input type="hidden" name="primary_image_index" id="primary_image_index" value="0">
+            <div class="listing-saved-media mb-3 d-none" id="new-photos-panel">
+                <h3 class="h6 fw-bold text-primary mb-2"><i class="fas fa-image me-1"></i>Selected photos (save to keep)</h3>
+                <p class="small text-muted mb-2">Click a photo for the home feed. Use <strong>×</strong> to remove before saving.</p>
+                <div id="image-preview" class="listing-media-grid"></div>
+            </div>
+            {% if can_upload_video %}
+            <label class="form-label fw-semibold mt-3" for="id_video">{% if object and object.video %}Replace video{% else %}Video (optional, one per listing){% endif %}</label>
+            {{ form.video }}
+            <p class="small text-muted mt-1 mb-0" id="video-upload-hint">
+                Up to {{ max_video_minutes }} minutes and {{ max_video_mb }} MB.
+                On mobile, uploads can take a minute — keep this page open until you see “Saved”.
+                <strong>Upload:</strong> MP4, M4V, MOV, WebM, 3GP, AVI, MKV, MPEG.
+                <strong>Best playback:</strong> MP4 with H.264. Other formats may upload but not play in every browser.
+            </p>
+            <p class="small text-primary mt-1 mb-0 d-none" id="video-selected-label"></p>
+            <div id="video-new-preview" class="mt-3 d-none"></div>
+            {% if form.video.errors %}<div class="text-danger small mt-1">{{ form.video.errors.0 }}</div>{% endif %}
+            {% elif object and object.video %}
+            <p class="small text-warning mt-3 mb-0">This listing has a video from when you were verified. <a href="{% url 'rentals:promotions' %}">Promote &amp; verify</a> to keep or change it.</p>
+            {% endif %}
+        </div>
+
+        <div class="listing-box" id="section-lease">
+            <h2><i class="fas fa-calendar-alt me-2"></i>How do you rent it?</h2>
+            <div class="d-flex flex-column flex-sm-row gap-2 mb-2">
+                <button type="button" class="lease-pill active" id="lease-btn-monthly" data-value="monthly">By the month</button>
+                <button type="button" class="lease-pill" id="lease-btn-short" data-value="short_stay">By the night (short stay)</button>
+            </div>
+            <p class="small text-muted mb-0">Pick one. The price boxes below will match what you picked.</p>
+        </div>
+
+        <div class="listing-box{% if form.address.errors or form.suburb.errors or form.city.errors %} has-form-error{% endif %}" id="section-where">
+            {% if places_autocomplete_enabled %}
+            <p class="small text-muted mb-3">Start typing the address — Google will suggest locations in South Africa.</p>
+            {% else %}
+            <p class="small text-muted mb-3">Enter the street, suburb, and city manually. Map suggestions work once you add a Google Maps API key in <code>.env</code>.</p>
+            {% endif %}
+            <div class="mb-3">
+                <label class="form-label">Street or area name</label>
+                {{ form.address }}
+                {{ form.address.errors }}
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Suburb or township</label>
+                    {{ form.suburb }}
+                    {{ form.suburb.errors }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Town or city</label>
+                    {{ form.city }}
+                    {{ form.city.errors }}
+                </div>
+            </div>
+            {{ form.latitude }}
+            {{ form.longitude }}
+        </div>
+
+        <div class="listing-box{% if form.property_type.errors or form.custom_property_type.errors or form.bedrooms.errors or form.max_occupants.errors or form.amenities.errors or form.custom_amenities.errors %} has-form-error{% endif %}" id="section-about">
+            <h2><i class="fas fa-home me-2"></i>About the place</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">What is it?</label>
+                    {{ form.property_type }}
+                    {{ form.property_type.errors }}
+                    <div class="mt-2 d-none" id="block-custom-property-type">
+                        <label class="form-label small" for="id_custom_property_type">{{ form.custom_property_type.label }}</label>
+                        {{ form.custom_property_type }}
+                        <div class="form-text">e.g. Office space, retail shop, warehouse</div>
+                        {{ form.custom_property_type.errors }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Furniture</label>
+                    {{ form.furnishing }}
+                    {{ form.furnishing.errors }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label">Bedrooms</label>
+                    {{ form.bedrooms }}
+                    <div class="form-text">Leave blank = 0 (studio)</div>
+                    {{ form.bedrooms.errors }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label">Bathrooms</label>
+                    {{ form.bathrooms }}
+                    <div class="form-text">Leave blank = 1</div>
+                    {{ form.bathrooms.errors }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label">How many people?</label>
+                    {{ form.max_occupants }}
+                    <div class="form-text">Leave blank = 1</div>
+                    {{ form.max_occupants.errors }}
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Size in m² (skip if you don’t know)</label>
+                    {{ form.area_sqm }}
+                </div>
+            </div>
+            <div class="mt-3 pt-3 border-top">
+                <label class="form-label fw-semibold">{{ form.amenities.label }}</label>
+                {% if form.amenities.help_text %}<p class="small text-muted mb-2">{{ form.amenities.help_text }}</p>{% endif %}
+                <p class="small text-muted mb-2" id="amenity-total-hint">
+                    <span id="amenity-selected-count">0</span> / {{ max_amenities_total }} amenities (ticked + typed)
+                </p>
+                <div class="amenity-picker" id="amenity-picker">
+                    {% regroup form.amenities.field.queryset by category as amenity_groups %}
+                    {% for group in amenity_groups %}
+                    <p class="amenity-cat-title">{{ group.grouper|default:"Other" }}</p>
+                    <ul>
+                        {% for choice in group.list %}
+                        <li>
+                            <label>
+                                <input type="checkbox" name="amenities" value="{{ choice.pk }}" class="amenity-std-check"
+                                       {% if choice.pk in selected_amenity_ids %}checked{% endif %}>
+                                {{ choice.name }}
+                            </label>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endfor %}
+                </div>
+                {% if form.amenities.errors %}<div class="text-danger small mt-1">{{ form.amenities.errors }}</div>{% endif %}
+
+                <div class="mt-3 pt-3 border-top">
+                    <label class="form-label fw-semibold" for="id_custom_amenities">{{ form.custom_amenities.label }}</label>
+                    {% if form.custom_amenities.help_text %}<p class="small text-muted mb-2">{{ form.custom_amenities.help_text }}</p>{% endif %}
+                    <textarea name="custom_amenities" id="id_custom_amenities" class="form-control" rows="3"
+                              placeholder="One per line, e.g.&#10;Rooftop deck&#10;Borehole water">{{ custom_amenities_initial }}</textarea>
+                    {% if form.custom_amenities.errors %}<div class="text-danger small mt-1">{{ form.custom_amenities.errors }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="listing-box{% if form.monthly_rent.errors or form.nightly_rate.errors %} has-form-error{% endif %}" id="section-money">
+            <h2><i class="fas fa-tag me-2"></i>Money</h2>
+            <div id="block-monthly" class="mb-3">
+                <label class="form-label">Rent per month (ZAR)</label>
+                {{ form.monthly_rent }}
+                {{ form.monthly_rent.errors }}
+            </div>
+            <div id="block-short" class="mb-3 d-none">
+                <label class="form-label">Price per night (ZAR)</label>
+                {{ form.nightly_rate }}
+                {{ form.nightly_rate.errors }}
+            </div>
+            <div class="form-check mb-3">
+                {{ form.utilities_included }}
+                <label class="form-check-label" for="{{ form.utilities_included.id_for_label }}">Water and lights are in the rent</label>
+            </div>
+        </div>
+
+        <div class="listing-box{% if form.payment_preference.errors or form.secure_space_amount.errors %} has-form-error{% endif %}" id="section-payment">
+            <h2><i class="fas fa-wallet me-2"></i>How will they pay?</h2>
+            <p class="small text-muted mb-2">{{ form.payment_preference.help_text }}</p>
+            {{ form.payment_preference }}
+            {{ form.payment_preference.errors }}
+            <div class="mt-4" id="block-secure-amount">
+                <label class="form-label fw-semibold" for="{{ form.secure_space_amount.id_for_label }}">{{ form.secure_space_amount.label }}</label>
+                <p class="small text-muted mb-2" id="secure-amount-help">
+                    Required when tenants pay on Qasha — this is the amount held on their card when they apply.
+                </p>
+                {{ form.secure_space_amount }}
+                {{ form.secure_space_amount.errors }}
+            </div>
+            <div class="alert alert-light border small mb-0 mt-3 d-none" id="direct-pay-note">
+                <i class="fas fa-hand-holding-usd me-1"></i>
+                Tenants arrange payment with you directly (EFT, cash, etc.). No securing amount is collected on Qasha.
+            </div>
+        </div>
+
+        <div class="listing-box{% if form.available_from.errors %} has-form-error{% endif %}" id="section-availability">
+            <h2><i class="fas fa-door-open me-2"></i>When is it free?</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Free from this date</label>
+                    {{ form.available_from }}
+                    {{ form.available_from.errors }}
+                </div>
+            </div>
+            <div class="form-check mt-3">
+                {{ form.is_available }}
+                <label class="form-check-label" for="{{ form.is_available.id_for_label }}">It is open for renters now</label>
+            </div>
+        </div>
+
+        <div class="listing-box{% if form.declare_authorized.errors or form.accept_listing_terms.errors %} has-form-error{% endif %}" id="section-legal">
+            <h2><i class="fas fa-file-signature me-2"></i>Before you publish</h2>
+            <p class="small text-muted mb-3">Required for new listings. You are responsible for accurate information and media you upload.</p>
+            {% if not object %}
+            <div class="form-check mb-2">
+                {{ form.declare_authorized }}
+                <label class="form-check-label" for="{{ form.declare_authorized.id_for_label }}">{{ form.declare_authorized.label }}</label>
+                {{ form.declare_authorized.errors }}
+            </div>
+            <div class="form-check mb-2">
+                {{ form.declare_accurate }}
+                <label class="form-check-label" for="{{ form.declare_accurate.id_for_label }}">{{ form.declare_accurate.label }}</label>
+                {{ form.declare_accurate.errors }}
+            </div>
+            <div class="form-check mb-2">
+                {{ form.declare_media_rights }}
+                <label class="form-check-label" for="{{ form.declare_media_rights.id_for_label }}">{{ form.declare_media_rights.label }}</label>
+                {{ form.declare_media_rights.errors }}
+            </div>
+            <div class="form-check mb-3">
+                {{ form.accept_listing_terms }}
+                <label class="form-check-label" for="{{ form.accept_listing_terms.id_for_label }}">
+                    I agree to the <a href="{% url 'core:terms' %}" target="_blank" rel="noopener">Terms of Service</a> and <a href="{% url 'core:privacy' %}" target="_blank" rel="noopener">Privacy Policy</a>.
+                </label>
+                {{ form.accept_listing_terms.errors }}
+            </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 mb-2" id="listing-submit-btn">
+            {% if object %}Save listing{% else %}Put it on the site{% endif %}
+        </button>
+        {% if object %}
+        <p class="small text-muted text-center mb-4">Photo × removals and “Remove video” apply when you save.</p>
+        {% else %}
+        <p class="small text-muted text-center mb-4"></p>
+        {% endif %}
+        <p class="small text-muted text-center mt-n3 mb-4 d-none" id="listing-upload-note">
+            Uploading photos and video… please wait and don’t close this page.
+        </p>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const leaseHidden = document.getElementById('{{ form.lease_type.id_for_label }}');
+    const btnM = document.getElementById('lease-btn-monthly');
+    const btnS = document.getElementById('lease-btn-short');
+    const blockM = document.getElementById('block-monthly');
+    const blockS = document.getElementById('block-short');
+    const fileInput = document.getElementById('id_property_images');
+    const preview = document.getElementById('image-preview');
+    const btnChoose = document.getElementById('btn-choose-photos');
+    const btnAddMore = document.getElementById('btn-add-more-photos');
+    const photoCountLabel = document.getElementById('photo-count-label');
+    const dropzone = document.getElementById('photo-dropzone');
+    const newPhotosPanel = document.getElementById('new-photos-panel');
+    const photoLimit = {{ photo_limit|default:10 }};
+    const existingPhotoCount = {{ current_photo_count|default:0 }};
+    const remainingPhotoSlots = Math.max(0, photoLimit - existingPhotoCount);
+    let accumulatedFiles = new DataTransfer();
+
+    function applyLeaseUI(val) {
+        const isBoth = val === 'both';
+        const monthly = val === 'monthly' || isBoth;
+        const short = val === 'short_stay' || isBoth;
+        btnM.classList.toggle('active', val === 'monthly' || isBoth);
+        btnS.classList.toggle('active', val === 'short_stay' || isBoth);
+        if (!isBoth) {
+            btnM.classList.toggle('active', val === 'monthly');
+            btnS.classList.toggle('active', val === 'short_stay');
+        }
+        blockM.classList.toggle('d-none', !monthly);
+        blockS.classList.toggle('d-none', !short);
+    }
+
+    function setLease(val) {
+        leaseHidden.value = val;
+        applyLeaseUI(val);
+    }
+
+    if (leaseHidden) {
+        const v = leaseHidden.value || 'monthly';
+        applyLeaseUI(v);
+        btnM.addEventListener('click', function() { setLease('monthly'); });
+        btnS.addEventListener('click', function() { setLease('short_stay'); });
+    }
+
+    const primaryIndexInput = document.getElementById('primary_image_index');
+
+    function selectNewPrimary(index) {
+        if (primaryIndexInput) primaryIndexInput.value = index;
+        preview.querySelectorAll('.thumb-pick-new').forEach(function(el, i) {
+            el.classList.toggle('selected', i === index);
+            const span = el.querySelector('span');
+            if (span) span.textContent = i === index ? 'On feed' : 'Use on feed';
+        });
+    }
+
+    document.querySelectorAll('.primary-existing-radio').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.thumb-pick').forEach(function(l) {
+                l.classList.toggle('selected', l.querySelector('input') === radio);
+                const s = l.querySelector('span');
+                if (s) s.textContent = l.querySelector('input').checked ? 'On feed' : 'Use';
+            });
+        });
+    });
+
+    function isImageFile(file) {
+        if (file.type && file.type.startsWith('image/')) return true;
+        const name = (file.name || '').toLowerCase();
+        return /\.(jpe?g|png|gif|webp|heic|heif|bmp|avif|tiff?)$/i.test(name);
+    }
+
+    function fileAlreadyAdded(file) {
+        return Array.from(accumulatedFiles.files).some(function(existing) {
+            return existing.name === file.name
+                && existing.size === file.size
+                && existing.lastModified === file.lastModified;
+        });
+    }
+
+    function removePhotoAtIndex(index) {
+        const dt = new DataTransfer();
+        const files = Array.from(accumulatedFiles.files);
+        files.forEach(function(f, i) {
+            if (i !== index) dt.items.add(f);
+        });
+        accumulatedFiles = dt;
+        syncFileInputFromAccumulated();
+        if (primaryIndexInput) {
+            const pi = parseInt(primaryIndexInput.value || '0', 10);
+            if (pi === index) primaryIndexInput.value = '0';
+            else if (pi > index) primaryIndexInput.value = String(pi - 1);
+        }
+        renderPhotoPreview();
+    }
+
+    function renderPhotoPreview() {
+        if (!preview) return;
+        preview.innerHTML = '';
+        const files = Array.from(accumulatedFiles.files);
+        if (newPhotosPanel) newPhotosPanel.classList.toggle('d-none', files.length === 0);
+        files.forEach(function(file, index) {
+            const wrapOuter = document.createElement('div');
+            wrapOuter.className = 'thumb-wrap';
+            const wrap = document.createElement('label');
+            const pi = parseInt(primaryIndexInput ? primaryIndexInput.value : '0', 10);
+            wrap.className = 'thumb-pick thumb-pick-new mb-0 d-block' + (index === pi ? ' selected' : '');
+            const url = URL.createObjectURL(file);
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Selected photo ' + (index + 1);
+            img.loading = 'lazy';
+            const span = document.createElement('span');
+            span.textContent = index === pi ? 'On feed' : 'Use on feed';
+            wrap.appendChild(img);
+            wrap.appendChild(span);
+            wrap.addEventListener('click', function(e) {
+                e.preventDefault();
+                selectNewPrimary(index);
+            });
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'thumb-remove';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.title = 'Remove photo';
+            removeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                removePhotoAtIndex(index);
+            });
+            wrapOuter.appendChild(wrap);
+            wrapOuter.appendChild(removeBtn);
+            preview.appendChild(wrapOuter);
+        });
+        if (photoCountLabel) {
+            const n = files.length;
+            if (n) {
+                photoCountLabel.textContent = n + ' new photo(s) selected'
+                    + (remainingPhotoSlots ? ' (' + (remainingPhotoSlots - n) + ' slot(s) left)' : '');
+            } else {
+                photoCountLabel.textContent = existingPhotoCount
+                    ? existingPhotoCount + ' photo(s) saved · add up to ' + remainingPhotoSlots + ' more'
+                    : '';
+            }
+        }
+        if (btnAddMore) btnAddMore.classList.toggle('d-none', files.length === 0);
+    }
+
+    function addPhotoFiles(fileList) {
+        let added = 0;
+        for (let i = 0; i < fileList.length; i++) {
+            const f = fileList[i];
+            if (!isImageFile(f)) continue;
+            if (fileAlreadyAdded(f)) continue;
+            if (accumulatedFiles.files.length >= remainingPhotoSlots) break;
+            accumulatedFiles.items.add(f);
+            added += 1;
+        }
+        if (added === 0 && fileList.length && remainingPhotoSlots <= 0) {
+            alert('Photo limit reached (' + photoLimit + ' for your plan). Remove a photo first.');
+        }
+        syncFileInputFromAccumulated();
+        renderPhotoPreview();
+    }
+
+    function syncFileInputFromAccumulated() {
+        if (!fileInput) return;
+        fileInput.files = accumulatedFiles.files;
+    }
+
+    function openPhotoPicker() {
+        if (!fileInput) return;
+        fileInput.value = '';
+        fileInput.click();
+    }
+
+    if (btnChoose) btnChoose.addEventListener('click', openPhotoPicker);
+    if (btnAddMore) btnAddMore.addEventListener('click', openPhotoPicker);
+    if (dropzone) dropzone.addEventListener('click', function(e) {
+        if (e.target !== fileInput) openPhotoPicker();
+    });
+    if (dropzone) {
+        dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('border-primary'); });
+        dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('border-primary'); });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.classList.remove('border-primary');
+            if (e.dataTransfer && e.dataTransfer.files) addPhotoFiles(e.dataTransfer.files);
+        });
+    }
+
+    if (fileInput && preview) {
+        fileInput.addEventListener('change', function() {
+            const incoming = Array.from(fileInput.files || []);
+            if (!incoming.length) return;
+            if (!incoming.some(isImageFile)) {
+                alert('Could not preview those files. Please choose JPG, PNG, or other image files.');
+                return;
+            }
+            addPhotoFiles(incoming);
+        });
+    }
+
+    const listingForm = document.getElementById('property-listing-form');
+    const submitBtn = document.getElementById('listing-submit-btn');
+    const uploadNote = document.getElementById('listing-upload-note');
+    const videoInput = document.getElementById('id_video');
+    const videoSelectedLabel = document.getElementById('video-selected-label');
+    const maxVideoBytes = {{ max_video_bytes|default:157286400 }};
+    const maxVideoMb = {{ max_video_mb|default:150 }};
+
+    function formatFileSize(bytes) {
+        if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
+        return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+    }
+
+    function updateVideoSelectedLabel() {
+        if (!videoInput || !videoSelectedLabel) return;
+        const file = videoInput.files && videoInput.files[0];
+        const videoNewPreview = document.getElementById('video-new-preview');
+        if (!file) {
+            videoSelectedLabel.classList.add('d-none');
+            videoSelectedLabel.textContent = '';
+            if (videoNewPreview) {
+                videoNewPreview.classList.add('d-none');
+                videoNewPreview.innerHTML = '';
+            }
+            return;
+        }
+        videoSelectedLabel.textContent = 'Ready to upload: ' + file.name + ' (' + formatFileSize(file.size) + ')';
+        videoSelectedLabel.classList.remove('d-none');
+        if (file.size > maxVideoBytes) {
+            videoSelectedLabel.classList.remove('text-primary');
+            videoSelectedLabel.classList.add('text-danger');
+            videoSelectedLabel.textContent += ' — too large (max ' + maxVideoMb + ' MB).';
+            if (videoNewPreview) {
+                videoNewPreview.classList.add('d-none');
+                videoNewPreview.innerHTML = '';
+            }
+        } else {
+            videoSelectedLabel.classList.add('text-primary');
+            videoSelectedLabel.classList.remove('text-danger');
+            if (videoNewPreview) {
+                videoNewPreview.classList.remove('d-none');
+                videoNewPreview.innerHTML =
+                    '<p class="small fw-semibold mb-2">Video preview (save to keep)</p>'
+                    + '<video controls playsinline webkit-playsinline preload="metadata" src="'
+                    + URL.createObjectURL(file) + '"></video>';
+            }
+        }
+    }
+
+    if (videoInput) {
+        videoInput.addEventListener('change', updateVideoSelectedLabel);
+        updateVideoSelectedLabel();
+    }
+
+    if (listingForm && fileInput) {
+        listingForm.addEventListener('submit', function(e) {
+            syncFileInputFromAccumulated();
+            if (videoInput && videoInput.files && videoInput.files[0]) {
+                const v = videoInput.files[0];
+                if (v.size > maxVideoBytes) {
+                    e.preventDefault();
+                    alert('Video is too large. Maximum size is ' + maxVideoMb + ' MB.');
+                    updateVideoSelectedLabel();
+                    if (videoInput.scrollIntoView) {
+                        videoInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return;
+                }
+            }
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving…';
+            }
+            if (uploadNote) uploadNote.classList.remove('d-none');
+        });
+    }
+
+    if (photoCountLabel && existingPhotoCount && !accumulatedFiles.files.length) {
+        photoCountLabel.textContent = existingPhotoCount + ' photo(s) saved · add up to ' + remainingPhotoSlots + ' more';
+    }
+
+    const removalHint = document.getElementById('removal-pending-hint');
+    function updateRemovalHint() {
+        if (!removalHint) return;
+        const any = document.querySelector('.remove-image-checkbox:checked');
+        removalHint.classList.toggle('d-none', !any);
+    }
+    document.querySelectorAll('.existing-photo-remove').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const item = btn.closest('.existing-photo-item');
+            const cb = item.querySelector('.remove-image-checkbox');
+            if (!cb) return;
+            cb.checked = !cb.checked;
+            item.classList.toggle('marked-for-removal', cb.checked);
+            btn.title = cb.checked ? 'Undo remove' : 'Remove photo';
+            btn.setAttribute('aria-pressed', cb.checked ? 'true' : 'false');
+            updateRemovalHint();
+        });
+    });
+    document.querySelectorAll('.existing-photo-item.missing-file .existing-photo-remove').forEach(function(btn) {
+        const item = btn.closest('.existing-photo-item');
+        const cb = item && item.querySelector('.remove-image-checkbox');
+        if (cb && !cb.checked) {
+            cb.checked = true;
+            item.classList.add('marked-for-removal');
+            btn.title = 'Undo remove';
+        }
+    });
+    updateRemovalHint();
+
+    const removeVideoCb = document.getElementById('remove-video-cb');
+    const videoPreviewBlock = document.getElementById('video-current-preview');
+    if (removeVideoCb && videoPreviewBlock) {
+        removeVideoCb.addEventListener('change', function() {
+            videoPreviewBlock.classList.toggle('opacity-50', removeVideoCb.checked);
+        });
+    }
+
+    const propertyTypeSelect = document.getElementById('id_property_type');
+    const customTypeBlock = document.getElementById('block-custom-property-type');
+    function applyPropertyTypeUI() {
+        if (!propertyTypeSelect || !customTypeBlock) return;
+        const isOther = propertyTypeSelect.value === 'other';
+        customTypeBlock.classList.toggle('d-none', !isOther);
+    }
+    if (propertyTypeSelect) {
+        propertyTypeSelect.addEventListener('change', applyPropertyTypeUI);
+        applyPropertyTypeUI();
+    }
+
+    const blockSecure = document.getElementById('block-secure-amount');
+    const directNote = document.getElementById('direct-pay-note');
+    const secureHelp = document.getElementById('secure-amount-help');
+
+    function applyPaymentUI() {
+        const selected = document.querySelector('input[name="payment_preference"]:checked');
+        const isDirect = selected && selected.value === 'direct';
+        if (blockSecure) blockSecure.classList.toggle('d-none', !!isDirect);
+        if (directNote) directNote.classList.toggle('d-none', !isDirect);
+        if (secureHelp && !isDirect) {
+            secureHelp.textContent = 'Required when tenants pay on Qasha — this is the amount held on their card when they apply.';
+        }
+    }
+    document.querySelectorAll('input[name="payment_preference"]').forEach(function(r) {
+        r.addEventListener('change', applyPaymentUI);
+    });
+    applyPaymentUI();
+
+    document.querySelectorAll('.text-danger.small, .invalid-feedback').forEach(function(el) {
+        const field = el.closest('.mb-3, .col-4, .col-md-6, .col-12, .form-check');
+        if (field) {
+            const input = field.querySelector('input, select, textarea');
+            if (input) input.classList.add('field-invalid');
+        }
+    });
+
+    const errorBanner = document.getElementById('form-error-banner');
+    if (errorBanner) {
+        errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const firstBadSection = document.querySelector('.listing-box.has-form-error');
+        if (firstBadSection) {
+            setTimeout(function() { firstBadSection.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 400);
+        }
+    }
+
+    const maxAmenitiesTotal = {{ max_amenities_total|default:5 }};
+    const customInput = document.getElementById('id_custom_amenities');
+    const countEl = document.getElementById('amenity-selected-count');
+    const stdChecks = document.querySelectorAll('.amenity-std-check');
+
+    function countCustomLines(text) {
+        const seen = new Set();
+        let n = 0;
+        (text || '').split('\n').forEach(function(line) {
+            const t = line.trim();
+            if (t.length < 2) return;
+            const key = t.toLowerCase();
+            if (seen.has(key)) return;
+            seen.add(key);
+            n += 1;
+        });
+        return n;
+    }
+
+    function updateAmenityCounts() {
+        const std = document.querySelectorAll('.amenity-std-check:checked').length;
+        const custom = customInput ? countCustomLines(customInput.value) : 0;
+        const total = std + custom;
+        if (countEl) countEl.textContent = total;
+        const atTotal = total >= maxAmenitiesTotal;
+        stdChecks.forEach(function(cb) {
+            cb.disabled = !cb.checked && atTotal;
+        });
+        if (customInput && total > maxAmenitiesTotal) {
+            customInput.classList.add('is-invalid');
+        } else if (customInput) {
+            customInput.classList.remove('is-invalid');
+        }
+    }
+
+    stdChecks.forEach(function(cb) {
+        cb.addEventListener('change', updateAmenityCounts);
+    });
+    if (customInput) {
+        customInput.addEventListener('input', updateAmenityCounts);
+    }
+    updateAmenityCounts();
+})();
+</script>
+{% endblock %}

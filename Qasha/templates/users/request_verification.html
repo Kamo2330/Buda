@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Host verification · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+    <a href="{% url 'rentals:promotions' %}" class="small text-muted text-decoration-none">&larr; Promote &amp; verify</a>
+    <h1 class="h3 text-primary mt-2 mb-2">Host verification</h1>
+    <p class="text-muted small mb-4">
+        Pay on Qasha with your card. Your verified badge and perks activate <strong>immediately</strong> after payment.
+        {% if listing_cap %}You have {{ listing_count }} of {{ listing_cap }} active listings on your current plan.{% endif %}
+    </p>
+
+    {% if user.has_host_verification_badge %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle me-1"></i>
+        Your account is <strong>{{ user.host_verification_badge_label }}</strong> with full listing perks.
+        {% if user.host_verification_tier == 'landlord' %}
+        <a href="{% url 'users:request_verification' %}?tier=agency" class="alert-link">Upgrade to Agency</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100 {% if not user.has_host_verification_badge %}border-primary{% endif %}">
+                <div class="card-body">
+                    <h2 class="h6 text-muted mb-2">{{ free_plan.label }}</h2>
+                    <p class="h4 mb-3">Free</p>
+                    <ul class="small text-muted ps-3 mb-0">
+                        {% for perk in free_plan.perks %}
+                        <li>{{ perk }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% for key, tier in verification_tiers.items %}
+        <div class="col-md-4">
+            <div class="card h-100 border-success {% if selected_tier == key %}shadow{% endif %}">
+                <div class="card-body d-flex flex-column">
+                    <h2 class="h6 text-success mb-2">{{ tier.label }}</h2>
+                    <p class="h4 text-success mb-3">R{{ tier.price_zar }}</p>
+                    <ul class="small text-muted flex-grow-1 ps-3 mb-3">
+                        {% for perk in tier.perks %}
+                        <li>{{ perk }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if user.has_host_verification_badge %}
+                        {% if user.host_verification_tier == key %}
+                        <span class="badge bg-success align-self-start">Current plan</span>
+                        {% elif key == 'agency' and user.host_verification_tier == 'landlord' %}
+                        <a href="{% url 'users:request_verification' %}?tier=agency" class="btn btn-success w-100 mt-auto">Upgrade — R{{ tier.price_zar }}</a>
+                        {% endif %}
+                    {% else %}
+                    <a href="{% url 'users:request_verification' %}?tier={{ key }}" class="btn btn-success w-100 mt-auto">
+                        Pay with card — R{{ tier.price_zar }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if tier_info %}
+        {% if not user.has_host_verification_badge %}
+    <div class="card shadow-sm" style="max-width: 560px;">
+        <div class="card-body p-4">
+            <h2 class="h6 mb-3">Pay R{{ tier_info.price_zar }} — {{ tier_info.label }}</h2>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="pay_verification">
+                <input type="hidden" name="tier" value="{{ selected_tier }}">
+
+                {% include 'rentals/partials/payment_card_fields.html' with payment_form=payment_form %}
+
+                <button type="submit" class="btn btn-success w-100 py-2 mt-3">
+                    <i class="fas fa-credit-card me-1"></i>Pay R{{ tier_info.price_zar }} — verify now
+                </button>
+                <p class="small text-muted text-center mt-2 mb-0">
+                    <a href="{% url 'users:request_verification' %}">Compare all plans</a>
+                </p>
+            </form>
+        </div>
+    </div>
+        {% elif selected_tier == 'agency' and user.host_verification_tier == 'landlord' %}
+    <div class="card shadow-sm" style="max-width: 560px;">
+        <div class="card-body p-4">
+            <h2 class="h6 mb-3">Upgrade to Agency — R{{ tier_info.price_zar }}</h2>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="pay_verification">
+                <input type="hidden" name="tier" value="agency">
+
+                {% include 'rentals/partials/payment_card_fields.html' with payment_form=payment_form %}
+
+                <button type="submit" class="btn btn-success w-100 py-2 mt-3">
+                    <i class="fas fa-credit-card me-1"></i>Pay R{{ tier_info.price_zar }} — upgrade now
+                </button>
+            </form>
+        </div>
+    </div>
+        {% endif %}
+    {% elif not user.has_host_verification_badge %}
+    <p class="small text-muted mb-0">Choose a plan above to pay and activate verification instantly.</p>
+    {% endif %}
+</div>
+{% endblock %}

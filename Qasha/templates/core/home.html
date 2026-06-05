@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load qasha_extras %}
+
+{% block title %}Qasha - Find the perfect room or home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Find the perfect room or home with Qasha</h1>
+                <p class="lead mb-4">Browse rentals across South Africa. List your place, message hosts, and book with tools built for local renters.</p>
+                
+                <!-- Quick Action Buttons -->
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="{% url 'rentals:property_list' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-search me-2"></i>Find a place
+                    </a>
+                    <a href="{% url 'rentals:property_create' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-plus me-2"></i>List your place
+                    </a>
+                    <a href="{% url 'rentals:property_list' %}?help=1" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-question me-2"></i>Help
+                    </a>
+                </div>
+                
+                <!-- Trust Message -->
+                <div class="trust-badges d-flex flex-wrap gap-3">
+                    <span class="badge bg-light text-primary px-3 py-2">
+                        <i class="fas fa-shield-alt me-1"></i>Optional host badges
+                    </span>
+                    <span class="badge bg-light text-primary px-3 py-2">
+                        <i class="fas fa-lock me-1"></i>Pay on Qasha
+                    </span>
+                    <span class="badge bg-light text-primary px-3 py-2">
+                        <i class="fas fa-check-circle me-1"></i>In-app messaging
+                    </span>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <!-- Search Form -->
+                <div class="card">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-primary mb-3">
+                            <i class="fas fa-search me-2"></i>Find Your Perfect Home
+                        </h5>
+                        <form method="get" action="{% url 'rentals:property_list' %}">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="search" class="form-label">Location</label>
+                                    <input type="text" class="form-control" id="search" name="search"
+                                           value="{{ current_filters.search|default:'' }}"
+                                           placeholder="City, suburb, or address"
+                                           data-qasha-places="search" autocomplete="off">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="property_type" class="form-label">Property Type</label>
+                                    <select class="form-control" id="property_type" name="property_type">
+                                        <option value="">All Types</option>
+                                        <option value="room">Room</option>
+                                        <option value="apartment">Apartment</option>
+                                        <option value="house">House</option>
+                                        <option value="studio">Studio</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="min_price" class="form-label">Min price (ZAR)</label>
+                                    <input type="number" class="form-control" id="min_price" name="min_price" placeholder="Min monthly rent (R)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="max_price" class="form-label">Max price (ZAR)</label>
+                                    <input type="number" class="form-control" id="max_price" name="max_price" placeholder="Max monthly rent (R)">
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-search me-2"></i>Search Properties
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Listings Section -->
+<section class="section-padding bg-light-blue">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 fw-bold text-primary mb-3">Featured Listings</h2>
+                <p class="lead text-muted">Top promoted listings on Qasha right now</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            {% for property in featured_properties %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="property-card card h-100">
+                    {% with img=property.get_display_image %}
+                    {% if img %}
+                        <img src="{{ img.image.url }}" class="property-image" alt="{{ property.title }}">
+                    {% else %}
+                        <div class="property-image bg-light d-flex align-items-center justify-content-center">
+                            <i class="fas fa-home fa-3x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    {% endwith %}
+                    
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0 d-flex align-items-center gap-2 flex-wrap">
+                                {{ property.title }}
+                                {% include 'rentals/partials/verified_host_tick.html' with host=property.host %}
+                            </h5>
+                            {% if user.is_authenticated and user.id == property.host_id %}
+                            <span class="badge bg-warning text-dark">Featured</span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="text-muted mb-2">
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ property.suburb }}, {{ property.city }}
+                        </p>
+                        
+                        <div class="property-details d-flex justify-content-between text-muted mb-3">
+                            <span><i class="fas fa-bed me-1"></i>{{ property.bedrooms }} bed</span>
+                            <span><i class="fas fa-bath me-1"></i>{{ property.bathrooms }} bath</span>
+                            {% if property.area_sqm %}
+                                <span><i class="fas fa-ruler-combined me-1"></i>{{ property.area_sqm }}m²</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="price">
+                                <span class="h5 text-primary mb-0">
+                                    {% if property.monthly_rent %}
+                                        {{ property.monthly_rent|zar }}/month
+                                    {% elif property.nightly_rate %}
+                                        {{ property.nightly_rate|zar }}/night
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <a href="{% url 'rentals:property_detail' property.pk %}" class="btn btn-outline-primary btn-sm">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center">
+                <div class="card">
+                    <div class="card-body py-5">
+                        <i class="fas fa-home fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No featured properties available</h5>
+                        <p class="text-muted">Check back soon for amazing rental opportunities!</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <a href="{% url 'rentals:property_list' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search me-2"></i>View All Properties
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Property Types Section -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 fw-bold text-primary mb-3">Find Your Perfect Match</h2>
+                <p class="lead text-muted">We have properties for every need and budget</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="icon-circle">
+                            <i class="fas fa-bed"></i>
+                        </div>
+                        <h5 class="card-title">Student Rooms</h5>
+                        <p class="card-text text-muted">Affordable rooms perfect for students with shared amenities and study spaces.</p>
+                        <a href="{% url 'rentals:property_list' %}?property_type=room" class="btn btn-outline-primary">Browse Rooms</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="icon-circle">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h5 class="card-title">Apartments</h5>
+                        <p class="card-text text-muted">Modern apartments with all the amenities you need for comfortable living.</p>
+                        <a href="{% url 'rentals:property_list' %}?property_type=apartment" class="btn btn-outline-primary">Browse Apartments</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="icon-circle">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <h5 class="card-title">Family Houses</h5>
+                        <p class="card-text text-muted">Spacious houses perfect for families with multiple bedrooms and outdoor space.</p>
+                        <a href="{% url 'rentals:property_list' %}?property_type=house" class="btn btn-outline-primary">Browse Houses</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="icon-circle">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h5 class="card-title">Short Stays</h5>
+                        <p class="card-text text-muted">Flexible short-term rentals for business trips, vacations, or temporary stays.</p>
+                        <a href="{% url 'rentals:property_list' %}?lease_type=short_stay" class="btn btn-outline-primary">Browse Short Stays</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="section-padding bg-light-blue">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 fw-bold text-primary mb-3">How It Works</h2>
+                <p class="lead text-muted">Simple steps to find your perfect home</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="icon-circle">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h5 class="card-title">1. Search & Discover</h5>
+                        <p class="card-text text-muted">Use our advanced filters to find properties that match your needs, budget, and location preferences.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="icon-circle">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <h5 class="card-title">2. Apply or Book</h5>
+                        <p class="card-text text-muted">Apply for monthly rentals or book short stays. Message hosts on Qasha before you commit.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="icon-circle">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <h5 class="card-title">3. Move In</h5>
+                        <p class="card-text text-muted">Use in-app messaging and optional Pay on Qasha. Report problems via Help if something goes wrong.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <a href="{% url 'core:how_it_works' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-info-circle me-2"></i>Learn More
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust & Security Section -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2 class="display-5 fw-bold text-primary mb-4">Built for trust — with clear limits</h2>
+                <p class="lead mb-4">Qasha connects hosts and renters. Optional verification badges and platform payments add confidence — but you should always inspect a place and read listings carefully.</p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Host verification (optional)</h6>
+                                <small class="text-muted">Paid badge after document review — not a background check</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Pay on Qasha</h6>
+                                <small class="text-muted">Optional card hold when booking (where enabled)</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Help</h6>
+                                <small class="text-muted">FAQ and messages inside Qasha</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle me-3" style="width: 50px; height: 50px;">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Host-listed properties</h6>
+                                <small class="text-muted">Hosts publish listings — always view before you pay</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-primary mb-3">
+                            <i class="fas fa-chart-line me-2"></i>Why Choose Qasha?
+                        </h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Transparent Pricing:</strong> No hidden fees or surprises
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Easy Booking:</strong> Simple and secure booking process
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Host listings:</strong> Photos and details come from hosts — verify in person
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Help built in:</strong> Tap ? anytime for FAQ or to reach us
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Flexible Options:</strong> Monthly and short-term rentals available
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

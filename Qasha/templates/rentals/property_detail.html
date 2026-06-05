@@ -1,0 +1,640 @@
+{% extends 'base.html' %}
+{% load qasha_extras %}
+
+{% block title %}{{ property.title }} - Qasha{% endblock %}
+
+{% block extra_css %}
+<style>
+.property-gallery-wrap { position: relative; }
+.property-gallery-main {
+    cursor: pointer;
+    position: relative;
+}
+.property-gallery-main img { height: 400px; object-fit: cover; }
+.property-gallery-toolbar {
+    position: absolute;
+    top: .75rem;
+    right: .75rem;
+    z-index: 5;
+    display: flex;
+    gap: .5rem;
+}
+.property-gallery-toolbar .btn {
+    background: rgba(255,255,255,.95);
+    border: none;
+    font-weight: 600;
+    font-size: .85rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.property-gallery-counter {
+    position: absolute;
+    bottom: .75rem;
+    left: .75rem;
+    z-index: 5;
+    background: rgba(15,23,42,.75);
+    color: #fff;
+    font-size: .8rem;
+    font-weight: 600;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+}
+.property-gallery-thumbs {
+    display: flex;
+    gap: .5rem;
+    padding: .75rem;
+    overflow-x: auto;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+.property-gallery-thumbs button {
+    flex: 0 0 auto;
+    border: 2px solid transparent;
+    border-radius: .5rem;
+    padding: 0;
+    overflow: hidden;
+    width: 72px;
+    height: 54px;
+    background: none;
+    opacity: .75;
+    transition: opacity .15s, border-color .15s;
+}
+.property-gallery-thumbs button.active,
+.property-gallery-thumbs button:hover {
+    opacity: 1;
+    border-color: #2563eb;
+}
+.property-gallery-thumbs img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+#photoGalleryModal .gallery-main-img {
+    max-height: 78vh;
+    max-width: 100%;
+    object-fit: contain;
+}
+#photoGalleryModal .gallery-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(255,255,255,.9);
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#photoGalleryModal .gallery-nav-prev { left: 1rem; }
+#photoGalleryModal .gallery-nav-next { right: 1rem; }
+#photoGalleryModal .gallery-modal-thumbs {
+    display: flex;
+    gap: .4rem;
+    overflow-x: auto;
+    padding: .5rem 0;
+    max-width: 100%;
+}
+#photoGalleryModal .gallery-modal-thumbs button {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 48px;
+    border: 2px solid transparent;
+    border-radius: .35rem;
+    padding: 0;
+    overflow: hidden;
+    opacity: .7;
+}
+#photoGalleryModal .gallery-modal-thumbs button.active {
+    border-color: #fff;
+    opacity: 1;
+}
+#photoGalleryModal .gallery-modal-thumbs img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.listing-video-player {
+    width: 100%;
+    min-height: 200px;
+    background: #000;
+    display: block;
+    object-fit: contain;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'rentals:property_list' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'rentals:property_list' %}">Properties</a></li>
+            <li class="breadcrumb-item active">{{ property.title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <!-- Property Images -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body p-0 property-gallery-wrap">
+                    {% if gallery_images %}
+                        <div id="propertyCarousel" class="carousel slide property-gallery-main" data-bs-ride="false">
+                            <div class="carousel-inner">
+                                {% for image in gallery_images %}
+                                    <div class="carousel-item {% if forloop.first %}active{% endif %}" data-gallery-index="{{ forloop.counter0 }}">
+                                        <img src="{{ image.image.url }}" class="d-block w-100 gallery-open-trigger" alt="{{ image.caption|default:property.title }}" role="button" tabindex="0">
+                                        {% if image.caption %}
+                                            <div class="carousel-caption d-none d-md-block">
+                                                <p>{{ image.caption }}</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="property-gallery-toolbar">
+                                <button type="button" class="btn btn-sm" id="openGalleryBtn" aria-label="View all photos">
+                                    <i class="fas fa-images me-1"></i>View all photos ({{ gallery_images|length }})
+                                </button>
+                            </div>
+                            <span class="property-gallery-counter" id="carouselCounter">1 / {{ gallery_images|length }}</span>
+                            {% if gallery_images|length > 1 %}
+                                <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon"></span>
+                                </button>
+                            {% endif %}
+                        </div>
+                        {% if gallery_images|length > 1 %}
+                        <div class="property-gallery-thumbs" id="galleryThumbs">
+                            {% for image in gallery_images %}
+                            <button type="button" class="gallery-thumb-btn{% if forloop.first %} active{% endif %}" data-bs-target="#propertyCarousel" data-bs-slide-to="{{ forloop.counter0 }}" data-gallery-index="{{ forloop.counter0 }}" aria-label="Photo {{ forloop.counter }}">
+                                <img src="{{ image.image.url }}" alt="">
+                            </button>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                            <i class="fas fa-home fa-3x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    {% if missing_gallery_count %}
+                    <p class="small text-warning mb-0 px-3 py-2 border-top">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        {{ missing_gallery_count }} photo{{ missing_gallery_count|pluralize }} for this listing could not be loaded (files missing from the server). The host can re-upload them from Manage.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if gallery_images %}
+            <div class="modal fade" id="photoGalleryModal" tabindex="-1" aria-labelledby="photoGalleryModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-fullscreen">
+                    <div class="modal-content bg-dark text-white">
+                        <div class="modal-header border-secondary border-opacity-25 py-2">
+                            <h2 class="modal-title h6 mb-0" id="photoGalleryModalLabel">{{ property.title }}</h2>
+                            <span class="small text-white-50 ms-2" id="galleryModalCounter">1 / {{ gallery_images|length }}</span>
+                            <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body d-flex align-items-center justify-content-center position-relative px-5 py-3">
+                            {% if gallery_images|length > 1 %}
+                            <button type="button" class="gallery-nav-btn gallery-nav-prev" id="galleryModalPrev" aria-label="Previous photo">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            {% endif %}
+                            <img src="" alt="" class="gallery-main-img" id="galleryModalImg">
+                            {% if gallery_images|length > 1 %}
+                            <button type="button" class="gallery-nav-btn gallery-nav-next" id="galleryModalNext" aria-label="Next photo">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% if gallery_images|length > 1 %}
+                        <div class="modal-footer border-secondary border-opacity-25 justify-content-center">
+                            <div class="gallery-modal-thumbs" id="galleryModalThumbs">
+                                {% for image in gallery_images %}
+                                <button type="button" class="gallery-modal-thumb{% if forloop.first %} active{% endif %}" data-gallery-index="{{ forloop.counter0 }}" aria-label="Photo {{ forloop.counter }}">
+                                    <img src="{{ image.image.url }}" alt="">
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {{ gallery_image_urls|json_script:"gallery-image-urls" }}
+            {% endif %}
+
+            {% if property.video %}
+            <div class="card mb-4 overflow-hidden" id="listing-video-section">
+                <div class="card-header bg-white py-3">
+                    <h2 class="h6 mb-0"><i class="fas fa-video me-2 text-primary"></i>Video tour</h2>
+                </div>
+                <div class="card-body p-2 p-sm-3">
+                    {% include 'rentals/includes/listing_video_player.html' with video_file=property.video max_height='420px' border_radius='0.5rem' poster_image=property.get_display_image %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Property Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        {{ property.title }}
+                        {% if is_own_listing and property.is_featured_active %}
+                        <span class="badge bg-warning text-dark ms-1">Featured</span>
+                        {% endif %}
+                    </h4>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ property.address }}, {{ property.suburb }}, {{ property.city }}
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-bed fa-2x text-primary mb-2"></i>
+                                <h6 class="mb-1">{{ property.bedrooms }}</h6>
+                                <small class="text-muted">Bedrooms</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-bath fa-2x text-primary mb-2"></i>
+                                <h6 class="mb-1">{{ property.bathrooms }}</h6>
+                                <small class="text-muted">Bathrooms</small>
+                            </div>
+                        </div>
+                        {% if property.area_sqm %}
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-ruler-combined fa-2x text-primary mb-2"></i>
+                                <h6 class="mb-1">{{ property.area_sqm }}m²</h6>
+                                <small class="text-muted">Area</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                <h6 class="mb-1">{{ property.max_occupants }}</h6>
+                                <small class="text-muted">Max Occupants</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-primary mb-0" role="alert">
+                        <strong>Message on Qasha.</strong> Ask questions and plan a viewing here. Do not put your phone number in the public listing.
+                    </div>
+                    
+                    <!-- Amenities -->
+                    {% if property.property_amenities.all %}
+                    <h5 class="mt-4">Amenities</h5>
+                    <div class="row">
+                        {% for amenity in property.property_amenities.all %}
+                        <div class="col-md-4 col-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <i class="{{ amenity.amenity.icon|default:'fas fa-tag' }} text-primary me-2"></i>
+                                <span>{{ amenity.amenity.name }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Rules -->
+                    {% if property.rules.all %}
+                    <h5 class="mt-4">House Rules</h5>
+                    <ul class="list-unstyled">
+                        {% for rule in property.rules.all %}
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>{{ rule.rule_text }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Booking Card -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 100px;">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h3 class="text-primary mb-1">
+                            {% if property.monthly_rent %}
+                                {{ property.monthly_rent|zar }}
+                                <small class="text-muted">/month</small>
+                            {% elif property.nightly_rate %}
+                                {{ property.nightly_rate|zar }}
+                                <small class="text-muted">/night</small>
+                            {% endif %}
+                        </h3>
+                        {% if property.payment_preference == 'platform' and property.secure_space_amount %}
+                            <p class="text-muted mb-0 fw-semibold">To secure: {{ property.secure_space_amount|zar }}</p>
+                            <p class="small text-muted mb-0">Card authorized at request; captured when owner accepts.</p>
+                        {% endif %}
+                        {% if property.utilities_included %}
+                            <span class="badge bg-success">Utilities Included</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>Property Type:</strong></span>
+                            <span>{{ property.get_listing_property_type_label }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>Furnishing:</strong></span>
+                            <span>{{ property.get_furnishing_display }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>Lease Type:</strong></span>
+                            <span>{{ property.get_lease_type_display }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>Available From:</strong></span>
+                            <span>{{ property.available_from|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span><strong>Payment:</strong></span>
+                            <span>{{ property.get_payment_preference_display }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if is_occupied %}
+                    <div class="alert alert-secondary small mb-3">This place is currently occupied.</div>
+                    {% elif not property.is_available %}
+                    <div class="alert alert-warning small mb-3">Not open for new applications right now.</div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        {% if is_own_listing %}
+                            <div class="alert alert-info small mb-0">
+                                <i class="fas fa-info-circle me-1"></i>This is your listing. Renters will message and apply from here.
+                            </div>
+                            <a href="{% url 'rentals:my_listings' %}" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>Manage listing
+                            </a>
+                            <a href="{% url 'rentals:my_hub' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-sliders-h me-2"></i>Go to Manage
+                            </a>
+                        {% elif user.is_authenticated %}
+                            {% if user_booking %}
+                            <a href="{% url 'rentals:my_applications' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-file-alt me-2"></i>View your application ({{ user_booking.get_status_display }})
+                            </a>
+                            {% elif can_apply %}
+                            <a href="{% url 'rentals:create_booking' property.id %}" class="btn btn-primary">
+                                <i class="fas fa-calendar-check me-2"></i>Request booking
+                            </a>
+                            {% if property.payment_preference == 'platform' %}
+                            <p class="small text-muted mb-0 mt-2">
+                                {{ property.secure_space_amount|zar }} authorized on your card (hold).
+                                Captured only if the owner accepts; released if declined.
+                            </p>
+                            {% endif %}
+                            {% endif %}
+
+                            <a href="{% url 'rentals:send_message' property.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-envelope me-2"></i>Message owner
+                            </a>
+
+                            <button type="button" class="btn btn-outline-danger" onclick="toggleWishlist({{ property.id }})" aria-label="Save place">
+                                <i class="{% if in_wishlist %}fas text-danger{% else %}far{% endif %} fa-heart me-2" id="wishlist-icon-{{ property.id }}"></i>
+                                <span id="wishlist-text-{{ property.id }}">
+                                    {% if in_wishlist %}Saved — tap to remove{% else %}Save place{% endif %}
+                                </span>
+                            </button>
+                        {% else %}
+                            <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Book
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Host Information -->
+                    <div class="mt-4 pt-4 border-top">
+                        <h6 class="mb-3">Hosted by</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                {% include 'includes/user_avatar.html' with profile_user=property.host size=50 %}
+                            </div>
+                            <div>
+                                <h6 class="mb-1 d-flex align-items-center gap-2 flex-wrap">
+                                    {{ property.host.get_full_name|default:property.host.username }}
+                                    {% include 'rentals/partials/verified_host_tick.html' with host=property.host show_label=True %}
+                                </h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Properties -->
+    {% if related_properties %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="mb-4">Similar Properties in {{ property.city }}</h4>
+            <div class="row">
+                {% for related_property in related_properties %}
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="property-card card h-100">
+                        {% with rel_img=related_property.get_display_image %}
+                        {% if rel_img %}
+                            <img src="{{ rel_img.image.url }}" class="property-image" alt="{{ related_property.title }}">
+                        {% else %}
+                            <div class="property-image bg-light d-flex align-items-center justify-content-center">
+                                <i class="fas fa-home fa-2x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        {% endwith %}
+                        
+                        <div class="card-body">
+                            <h6 class="card-title">{{ related_property.title }}</h6>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-map-marker-alt me-1"></i>{{ related_property.suburb }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-primary fw-bold">
+                                    {% if related_property.monthly_rent %}
+                                        {{ related_property.monthly_rent|zar }}/month
+                                    {% elif related_property.nightly_rate %}
+                                        {{ related_property.nightly_rate|zar }}/night
+                                    {% endif %}
+                                </span>
+                                <a href="{% url 'rentals:property_detail' related_property.pk %}" class="btn btn-outline-primary btn-sm">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const urlsEl = document.getElementById('gallery-image-urls');
+    if (!urlsEl) return;
+
+    const imageUrls = JSON.parse(urlsEl.textContent);
+    let modalIndex = 0;
+
+    const carousel = document.getElementById('propertyCarousel');
+    const counterEl = document.getElementById('carouselCounter');
+    const modalEl = document.getElementById('photoGalleryModal');
+    const modalImg = document.getElementById('galleryModalImg');
+    const modalCounter = document.getElementById('galleryModalCounter');
+    const openBtn = document.getElementById('openGalleryBtn');
+
+    function syncThumbActive(index) {
+        document.querySelectorAll('.gallery-thumb-btn').forEach(function(btn) {
+            btn.classList.toggle('active', parseInt(btn.dataset.galleryIndex, 10) === index);
+        });
+        document.querySelectorAll('.gallery-modal-thumb').forEach(function(btn) {
+            btn.classList.toggle('active', parseInt(btn.dataset.galleryIndex, 10) === index);
+        });
+    }
+
+    function updateCarouselCounter(index) {
+        if (counterEl) {
+            counterEl.textContent = (index + 1) + ' / ' + imageUrls.length;
+        }
+    }
+
+    function showModalAt(index) {
+        modalIndex = (index + imageUrls.length) % imageUrls.length;
+        if (modalImg) modalImg.src = imageUrls[modalIndex];
+        if (modalCounter) modalCounter.textContent = (modalIndex + 1) + ' / ' + imageUrls.length;
+        syncThumbActive(modalIndex);
+    }
+
+    function openGallery(index) {
+        if (!modalEl) return;
+        showModalAt(index);
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    function getCarouselIndex() {
+        if (!carousel) return 0;
+        const active = carousel.querySelector('.carousel-item.active');
+        return active ? parseInt(active.dataset.galleryIndex, 10) || 0 : 0;
+    }
+
+    if (carousel) {
+        carousel.addEventListener('slid.bs.carousel', function(e) {
+            const idx = e.to !== undefined ? e.to : getCarouselIndex();
+            updateCarouselCounter(idx);
+            syncThumbActive(idx);
+        });
+    }
+
+    if (openBtn) {
+        openBtn.addEventListener('click', function() {
+            openGallery(getCarouselIndex());
+        });
+    }
+
+    document.querySelectorAll('.gallery-open-trigger').forEach(function(img) {
+        img.addEventListener('click', function() {
+            openGallery(getCarouselIndex());
+        });
+        img.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openGallery(getCarouselIndex());
+            }
+        });
+    });
+
+    document.getElementById('galleryModalPrev')?.addEventListener('click', function() {
+        showModalAt(modalIndex - 1);
+    });
+    document.getElementById('galleryModalNext')?.addEventListener('click', function() {
+        showModalAt(modalIndex + 1);
+    });
+
+    document.querySelectorAll('.gallery-modal-thumb').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            showModalAt(parseInt(btn.dataset.galleryIndex, 10));
+        });
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (!modalEl || !modalEl.classList.contains('show')) return;
+        if (e.key === 'ArrowLeft') showModalAt(modalIndex - 1);
+        if (e.key === 'ArrowRight') showModalAt(modalIndex + 1);
+    });
+})();
+
+function toggleWishlist(propertyId) {
+        const icon = document.getElementById(`wishlist-icon-${propertyId}`);
+        const text = document.getElementById(`wishlist-text-${propertyId}`);
+        const isInWishlist = text.textContent.includes('Remove');
+        
+        const url = isInWishlist ? 
+            `/rentals/property/${propertyId}/remove-from-wishlist/` : 
+            `/rentals/property/${propertyId}/add-to-wishlist/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || 'Could not update saved places.');
+                return;
+            }
+            if (data.success) {
+                if (isInWishlist) {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                    text.textContent = 'Save place';
+                    icon.classList.remove('text-danger');
+                } else {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas', 'text-danger');
+                    text.textContent = 'Remove from saved';
+                }
+                
+                // Show success message
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show';
+                alert.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('main').insertBefore(alert, document.querySelector('main').firstChild);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Feature listing · Qasha{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 560px;">
+    <a href="{% url 'rentals:promotions' %}" class="small text-muted text-decoration-none">&larr; Promote &amp; verify</a>
+    <h1 class="h4 text-primary mt-2 mb-1">Feature this listing</h1>
+    <p class="text-muted small mb-4">{{ property.title }} · {{ property.suburb }}, {{ property.city }}</p>
+
+    {% if property.is_featured_active %}
+    <div class="alert alert-success">
+        <i class="fas fa-star me-1"></i>
+        This listing is <strong>featured</strong> until {{ property.featured_until|date:"j M Y, H:i" }}.
+        Choose a plan below to extend featured placement.
+    </div>
+    {% endif %}
+
+    {% if plan_info %}
+    <div class="card mb-3 border-warning">
+        <div class="card-body p-4">
+            <h2 class="h6 mb-2">Pay R{{ plan_info.price_zar }} — featured for {{ plan_info.label }}</h2>
+            <p class="small text-muted mb-0">Payment is processed on Qasha. Featured placement starts immediately after payment.</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="pay_featured">
+                <input type="hidden" name="plan" value="{{ selected_plan }}">
+
+                {% include 'rentals/partials/payment_card_fields.html' with payment_form=payment_form %}
+
+                <button type="submit" class="btn btn-warning text-dark w-100 py-2 mt-3">
+                    <i class="fas fa-credit-card me-1"></i>Pay R{{ plan_info.price_zar }} — {% if property.is_featured_active %}extend{% else %}feature{% endif %} listing
+                </button>
+                <p class="small text-muted text-center mt-2 mb-0">
+                    <a href="{% url 'rentals:promote_listing' property.pk %}">Choose a different plan</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="card mb-3">
+        <div class="card-body p-4">
+            <h2 class="h6 mb-2">What you get</h2>
+            <ul class="small text-muted mb-0 ps-3">
+                <li>Featured badge on your listing in search</li>
+                <li>Higher placement in the browse feed</li>
+                <li>Chance to appear in the homepage Featured row</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        {% for key, plan in featured_plans.items %}
+        <div class="col-md-6">
+            <div class="card h-100 border-warning">
+                <div class="card-body d-flex flex-column">
+                    <h3 class="h5 mb-1">R{{ plan.price_zar }}</h3>
+                    <p class="text-muted small mb-3">{{ plan.label }}</p>
+                    <a href="{% url 'rentals:promote_listing' property.pk %}?plan={{ key }}" class="btn btn-warning text-dark w-100 mt-auto">
+                        Pay with card — {% if property.is_featured_active %}extend{% else %}feature{% endif %} {{ plan.label }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
